@@ -37,6 +37,25 @@
                                Foreground="#FFD7E2F2"
                                FontSize="14"
                                Text="Run finite or infinite ping loops against any host or IP, with live latency and failure tracking." />
+                    <StackPanel Margin="0,10,0,0"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <TextBlock Foreground="#FF9EB7D4"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Text="Current IP:" />
+                        <TextBlock Margin="8,0,10,0"
+                                   Foreground="#FFF4F7FB"
+                                   FontSize="13"
+                                   Text="{Binding CurrentIpDisplay}" />
+                        <Button Padding="10,4"
+                                Background="#22324B"
+                                Foreground="White"
+                                BorderBrush="#335172"
+                                Click="ToggleCurrentIpButton_OnClick"
+                                Content="{Binding CurrentIpToggleText}"
+                                IsEnabled="{Binding CanToggleCurrentIp}" />
+                    </StackPanel>
                 </StackPanel>
 
                 <Border Grid.Column="1"

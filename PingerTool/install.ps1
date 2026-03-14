@@ -1,8 +1,29 @@
 param(
-    [switch]$TryPinToStart = $true
+    [switch]$TryPinToStart = $true,
+    [switch]$Reinstall,
+    [switch]$PruneOldVersions
 )
 
 $ErrorActionPreference = 'Stop'
+
+function Get-AppVersion {
+    param(
+        [Parameter(Mandatory)]
+        [string]$ProjectPath
+    )
+
+    [xml]$project = Get-Content -Path $ProjectPath
+
+    foreach ($propertyGroup in @($project.Project.PropertyGroup))
+    {
+        if (-not [string]::IsNullOrWhiteSpace($propertyGroup.Version))
+        {
+            return $propertyGroup.Version.Trim()
+        }
+    }
+
+    throw "Could not find a <Version> element in $ProjectPath."
+}
 
 function New-AppShortcut {
     param(
@@ -86,17 +107,33 @@ function Invoke-PinToStart {
 }
 
 $projectPath = Join-Path -Path $PSScriptRoot -ChildPath 'PingerTool.csproj'
-$installDirectory = Join-Path -Path $env:LOCALAPPDATA -ChildPath 'Programs\PingRunner'
+$appVersion = Get-AppVersion -ProjectPath $projectPath
+$installRoot = Join-Path -Path $env:LOCALAPPDATA -ChildPath 'Programs\PingRunner'
+$installDirectory = Join-Path -Path $installRoot -ChildPath $appVersion
+$currentVersionPath = Join-Path -Path $installRoot -ChildPath 'current-version.txt'
+$legacyExecutablePath = Join-Path -Path $installRoot -ChildPath 'PingRunner.exe'
 $shortcutPath = Join-Path -Path ([Environment]::GetFolderPath('Programs')) -ChildPath 'Ping Runner.lnk'
 
-if (Test-Path -Path $installDirectory)
+if (-not (Test-Path -Path $installRoot))
 {
-    Get-ChildItem -Path $installDirectory -Force | Remove-Item -Recurse -Force
+    New-Item -ItemType Directory -Path $installRoot | Out-Null
 }
-else
+
+if (Test-Path -Path $legacyExecutablePath)
 {
-    New-Item -ItemType Directory -Path $installDirectory | Out-Null
+    Get-ChildItem -Path $installRoot -Force | Remove-Item -Recurse -Force
 }
+elseif (Test-Path -Path $installDirectory)
+{
+    if (-not $Reinstall)
+    {
+        throw "Ping Runner version $appVersion is already installed at $installDirectory. Re-run with -Reinstall to replace it."
+    }
+
+    Remove-Item -Path $installDirectory -Recurse -Force
+}
+
+New-Item -ItemType Directory -Path $installDirectory -Force | Out-Null
 
 dotnet publish $projectPath `
     -c Release `
@@ -114,6 +151,15 @@ if (-not (Test-Path -Path $executablePath))
     throw "Expected published executable was not found at $executablePath."
 }
 
+Set-Content -Path $currentVersionPath -Value $appVersion -Encoding ascii
+
+if ($PruneOldVersions)
+{
+    Get-ChildItem -Path $installRoot -Directory |
+        Where-Object { $_.Name -ne $appVersion } |
+        Remove-Item -Recurse -Force
+}
+
 New-AppShortcut `
     -ShortcutPath $shortcutPath `
     -TargetPath $executablePath `
@@ -127,8 +173,10 @@ if ($TryPinToStart)
     $pinAttempted = (Invoke-PinToStart -Path $shortcutPath) -or (Invoke-PinToStart -Path $executablePath)
 }
 
-Write-Host "Installed Ping Runner to: $installDirectory"
+Write-Host "Installed Ping Runner version $appVersion to: $installDirectory"
 Write-Host "Created Start Menu shortcut: $shortcutPath"
+Write-Host "Recorded current version in: $currentVersionPath"
+Write-Host "Use -Reinstall to replace the currently installed version directory."
 
 if ($TryPinToStart)
 {

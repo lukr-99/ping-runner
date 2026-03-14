@@ -22,6 +22,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private int _failureCount;
     private long _totalRoundtripMilliseconds;
     private int _latencySampleCount;
+    private string? _currentIpAddress;
+    private string _currentIpStatus = "Loading...";
+    private bool _isCurrentIpVisible;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -109,6 +112,25 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         SentCount == 0
             ? "-"
             : $"{(double)SuccessCount / SentCount:P1}";
+
+    public string CurrentIpDisplay
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_currentIpAddress))
+            {
+                return _currentIpStatus;
+            }
+
+            return _isCurrentIpVisible
+                ? _currentIpAddress
+                : "Hidden";
+        }
+    }
+
+    public string CurrentIpToggleText => _isCurrentIpVisible ? "Hide" : "Show";
+
+    public bool CanToggleCurrentIp => !string.IsNullOrWhiteSpace(_currentIpAddress);
 
     public bool CanStart => !IsRunning;
 
@@ -205,6 +227,33 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         StatusText = statusText;
     }
 
+    public void SetCurrentIpAddress(string ipAddress)
+    {
+        _currentIpAddress = ipAddress;
+        _currentIpStatus = "Hidden";
+        _isCurrentIpVisible = false;
+        NotifyCurrentIpStateChanged();
+    }
+
+    public void SetCurrentIpUnavailable()
+    {
+        _currentIpAddress = null;
+        _currentIpStatus = "Unavailable";
+        _isCurrentIpVisible = false;
+        NotifyCurrentIpStateChanged();
+    }
+
+    public void ToggleCurrentIpVisibility()
+    {
+        if (!CanToggleCurrentIp)
+        {
+            return;
+        }
+
+        _isCurrentIpVisible = !_isCurrentIpVisible;
+        NotifyCurrentIpStateChanged();
+    }
+
     private void ResetStatistics()
     {
         SentCount = 0;
@@ -216,6 +265,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(SuccessFailureSummary));
         OnPropertyChanged(nameof(AverageLatencyText));
         OnPropertyChanged(nameof(SuccessRateText));
+    }
+
+    private void NotifyCurrentIpStateChanged()
+    {
+        OnPropertyChanged(nameof(CurrentIpDisplay));
+        OnPropertyChanged(nameof(CurrentIpToggleText));
+        OnPropertyChanged(nameof(CanToggleCurrentIp));
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

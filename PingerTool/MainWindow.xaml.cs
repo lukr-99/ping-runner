@@ -1,4 +1,5 @@
 using System.Windows;
+using PingerTool.Features.Networking.Services;
 using PingerTool.Core.Pinging.Services;
 using PingerTool.ViewModels;
 
@@ -7,6 +8,7 @@ namespace PingerTool;
 public partial class MainWindow : Window
 {
     private readonly PingService _pingService = new();
+    private readonly PublicIpAddressService _publicIpAddressService = new();
     private readonly MainWindowViewModel _viewModel = new();
     private GraphWindow? _graphWindow;
     private CancellationTokenSource? _runCancellationTokenSource;
@@ -16,6 +18,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = _viewModel;
+        Loaded += MainWindow_OnLoaded;
     }
 
     private async void StartButton_OnClick(object sender, RoutedEventArgs e)
@@ -85,6 +88,26 @@ public partial class MainWindow : Window
         };
         _graphWindow.Closed += GraphWindow_OnClosed;
         _graphWindow.Show();
+    }
+
+    private async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+    {
+        Loaded -= MainWindow_OnLoaded;
+
+        var ipAddress = await _publicIpAddressService.TryGetCurrentIpAddressAsync();
+
+        if (string.IsNullOrWhiteSpace(ipAddress))
+        {
+            _viewModel.SetCurrentIpUnavailable();
+            return;
+        }
+
+        _viewModel.SetCurrentIpAddress(ipAddress);
+    }
+
+    private void ToggleCurrentIpButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        _viewModel.ToggleCurrentIpVisibility();
     }
 
     protected override void OnClosed(EventArgs e)
