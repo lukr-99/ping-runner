@@ -21,6 +21,7 @@ public partial class GraphWindow : Window
 
         InitializeComponent();
         DataContext = _viewModel;
+        Loaded += GraphWindow_OnLoaded;
     }
 
     private async void ImportDataButton_OnClick(object sender, RoutedEventArgs e)
@@ -94,6 +95,13 @@ public partial class GraphWindow : Window
     {
         _viewModel.Dispose();
         base.OnClosed(e);
+    }
+
+    private void GraphWindow_OnLoaded(object sender, RoutedEventArgs e)
+    {
+        LatencyChart.InvalidateMeasure();
+        LatencyChart.UpdateLayout();
+        LatencyChart.InvalidateVisual();
     }
 
     private async Task ExportAttemptsAsync(IReadOnlyList<Core.Pinging.Models.PingAttemptResult> attempts, string exportSuffix)

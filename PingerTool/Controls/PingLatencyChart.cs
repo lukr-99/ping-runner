@@ -10,6 +10,8 @@ namespace PingerTool.Controls;
 
 public sealed class PingLatencyChart : FrameworkElement
 {
+    private const double MinimumChartWidth = 320;
+    private const double MinimumChartHeight = 240;
     private const double LeftPadding = 58;
     private const double TopPadding = 18;
     private const double RightPadding = 18;
@@ -111,6 +113,23 @@ public sealed class PingLatencyChart : FrameworkElement
             typeof(double),
             typeof(PingLatencyChart),
             new FrameworkPropertyMetadata(0d, FrameworkPropertyMetadataOptions.AffectsRender, OnViewportPropertyChanged));
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        var desiredWidth = double.IsInfinity(availableSize.Width)
+            ? MinimumChartWidth
+            : Math.Max(0, availableSize.Width);
+        var desiredHeight = double.IsInfinity(availableSize.Height)
+            ? MinimumChartHeight
+            : Math.Max(0, availableSize.Height);
+
+        return new Size(desiredWidth, desiredHeight);
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        return finalSize;
+    }
 
     protected override void OnRender(DrawingContext drawingContext)
     {

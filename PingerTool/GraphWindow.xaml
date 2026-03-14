@@ -295,8 +295,11 @@
                 BorderBrush="#FFD0D7E2"
                 BorderThickness="1"
                 CornerRadius="10"
-                Padding="12">
+                Padding="12"
+                MinHeight="360">
             <controls:PingLatencyChart x:Name="LatencyChart"
+                                       HorizontalAlignment="Stretch"
+                                       VerticalAlignment="Stretch"
                                        ItemsSource="{Binding ChartItemsSource}"
                                        RangeMode="{Binding SelectedRangeMode.Value}"
                                        RecentAttemptLimit="{Binding SelectedAttemptRange.Value}"
