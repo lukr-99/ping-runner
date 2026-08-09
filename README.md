@@ -59,3 +59,8 @@ powershell -ExecutionPolicy Bypass -File .\PingerTool\install.ps1 -Reinstall -Pr
 
 - The desktop app now shows your current public IP in the header area.
 - The IP is hidden by default and can be revealed or hidden again with the adjacent button.
+
+
+## License
+
+[PolyForm Noncommercial 1.0.0](LICENSE.md) — free for personal and non-commercial use; selling or other commercial use requires permission.
