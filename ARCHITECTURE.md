@@ -92,7 +92,10 @@ names the first bad line instead of loading half a file.
 `Theming/ThemeApplier` sets semantic brushes (`PR.BackgroundBrush`, `PR.SurfaceBrush`,
 `PR.TextPrimaryBrush`, `PR.AccentBrush`, `PR.DangerBrush` and the rest) from `NeutralPalette` (light
 or dark) and `AccentPalette` (teal, blue, violet, amber), and applies WPF UI's theme to match. Views read
-only the `PR.*` keys through `DynamicResource`, so a switch shows at once. WPF UI builds some accent
+only the `PR.*` keys through `DynamicResource`, so a switch shows at once. The accent reaches every page
+through shared pieces: `Controls/PageHeader` (the page icon on `PR.AccentSoftBrush`), the icon badge
+in `Controls/StatTile`, `PR.SectionLabel`, the `PR.StatusPill` while a run is going, and
+`PR.TonalButton` (in `App.xaml`) for every secondary action. WPF UI builds some accent
 brushes once per theme, so a window open across a switch kept the old accent; `ThemeApplier` writes
 fresh brushes under those keys on every apply, the same fix GoalMaker uses.
 

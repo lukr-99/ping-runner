@@ -1,9 +1,13 @@
 using System.Windows;
 using PingRunner.App.ViewModels;
+using Wpf.Ui.Controls;
 
 namespace PingRunner.App.Controls;
 
-/// <summary>One figure on a card: a label, the value (colored by its severity) and a hint underneath.</summary>
+/// <summary>
+/// One figure on a card: an icon on a tint of the accent, a label, the value (colored by its severity)
+/// and a hint underneath.
+/// </summary>
 public partial class StatTile
 {
     public static readonly DependencyProperty LabelProperty =
@@ -17,6 +21,9 @@ public partial class StatTile
 
     public static readonly DependencyProperty SeverityProperty =
         DependencyProperty.Register(nameof(Severity), typeof(Severity), typeof(StatTile), new PropertyMetadata(Severity.Neutral));
+
+    public static readonly DependencyProperty IconProperty =
+        DependencyProperty.Register(nameof(Icon), typeof(SymbolRegular), typeof(StatTile), new PropertyMetadata(SymbolRegular.DataArea24));
 
     public static readonly DependencyProperty ValueSizeProperty =
         DependencyProperty.Register(nameof(ValueSize), typeof(double), typeof(StatTile), new PropertyMetadata(22d));
@@ -48,6 +55,12 @@ public partial class StatTile
     {
         get => (Severity)GetValue(SeverityProperty);
         set => SetValue(SeverityProperty, value);
+    }
+
+    public SymbolRegular Icon
+    {
+        get => (SymbolRegular)GetValue(IconProperty);
+        set => SetValue(IconProperty, value);
     }
 
     public double ValueSize

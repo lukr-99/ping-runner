@@ -15,13 +15,8 @@
             <RowDefinition Height="*" MinHeight="120" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,12">
-            <TextBlock Style="{StaticResource PR.PageTitle}" Text="Speed test" />
-            <TextBlock Style="{StaticResource PR.PageSubtitle}">
-                <Run Text="Download and upload throughput, and latency under load, against" />
-                <Run Text="{Binding ServerName, Mode=OneWay}" /><Run Text="." />
-            </TextBlock>
-        </StackPanel>
+        <controls:PageHeader Grid.Row="0" Icon="TopSpeed24" Title="Speed test"
+                             Subtitle="{Binding ServerName, StringFormat=Download and upload throughput\, and latency under load\, against {0}.}" />
 
         <!-- The running test. -->
         <Border Grid.Row="1" Style="{StaticResource PR.Card}">
@@ -42,7 +37,7 @@
                                    Icon="{ui:SymbolIcon Play24}"
                                    MinWidth="120"
                                    Command="{Binding RunCommand}" />
-                        <ui:Button Margin="8,0,0,0"
+                        <ui:Button Style="{StaticResource PR.TonalButton}" Margin="8,0,0,0"
                                    Content="Cancel"
                                    Icon="{ui:SymbolIcon Stop24}"
                                    Command="{Binding CancelCommand}"
@@ -77,11 +72,11 @@
         <primitives:UniformGrid Grid.Row="3" Margin="-4,8,-4,4" Columns="5" Rows="1"
                                 DataContext="{Binding Latest}"
                                 Visibility="{Binding Converter={StaticResource NullToCollapsed}}">
-            <controls:StatTile Margin="4" Label="Download" Value="{Binding DownloadShort}" Hint="{Binding DownloadPeak}" />
-            <controls:StatTile Margin="4" Label="Upload" Value="{Binding UploadShort}" Hint="{Binding UploadPeak}" />
-            <controls:StatTile Margin="4" Label="Idle latency" Value="{Binding IdleLatency}" Hint="{Binding IdleLatencyHint}" />
-            <controls:StatTile Margin="4" Label="Latency under load" Value="{Binding LoadedLatency}" Hint="Median while downloading / uploading" />
-            <controls:StatTile Margin="4" Label="Bufferbloat" Value="{Binding Grade}" Hint="{Binding GradeHint}" Severity="{Binding GradeSeverity}" />
+            <controls:StatTile Margin="4" Icon="ArrowDownload24" Label="Download" Value="{Binding DownloadShort}" Hint="{Binding DownloadPeak}" />
+            <controls:StatTile Margin="4" Icon="ArrowUpload24" Label="Upload" Value="{Binding UploadShort}" Hint="{Binding UploadPeak}" />
+            <controls:StatTile Margin="4" Icon="Timer24" Label="Idle latency" Value="{Binding IdleLatency}" Hint="{Binding IdleLatencyHint}" />
+            <controls:StatTile Margin="4" Icon="Gauge24" Label="Latency under load" Value="{Binding LoadedLatency}" Hint="Median while downloading / uploading" />
+            <controls:StatTile Margin="4" Icon="Flash24" Label="Bufferbloat" Value="{Binding Grade}" Hint="{Binding GradeHint}" Severity="{Binding GradeSeverity}" />
         </primitives:UniformGrid>
 
         <!-- This session's results. -->
@@ -124,8 +119,8 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding When}" FontFamily="Consolas" Foreground="{DynamicResource PR.TextSecondaryBrush}" />
-                                    <TextBlock Grid.Column="1" Text="{Binding DownloadShort}" FontWeight="SemiBold" />
-                                    <TextBlock Grid.Column="2" Text="{Binding UploadShort}" FontWeight="SemiBold" />
+                                    <TextBlock Grid.Column="1" Text="{Binding DownloadShort}" Style="{StaticResource PR.AccentValue}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding UploadShort}" Style="{StaticResource PR.AccentValue}" />
                                     <TextBlock Grid.Column="3" Text="{Binding IdleLatency}" />
                                     <TextBlock Grid.Column="4" Text="{Binding LoadedLatency}" />
                                     <TextBlock Grid.Column="5" Text="{Binding Grade}" Tag="{Binding GradeSeverity}" Style="{StaticResource PR.SeverityValue}" FontWeight="SemiBold" />

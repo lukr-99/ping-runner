@@ -62,6 +62,8 @@ public sealed class ThemeApplier : IDisposable
         Set("DangerSoft", WithAlpha(neutral.Danger, 0x2A));
         Set("Accent", accentColor);
         Set("AccentSoft", WithAlpha(accentColor, 0x26));
+        Set("AccentHover", WithAlpha(accentColor, 0x3D));
+        Set("AccentPressed", WithAlpha(accentColor, 0x55));
         Set("OnAccent", palette.TextOnAccent(IsDark));
         Set("Focus", accentColor);
 
@@ -96,6 +98,9 @@ public sealed class ThemeApplier : IDisposable
         resources["AccentControlElevationBorderBrush"] = Frozen(Colors.Transparent);
         resources["TextOnAccentFillColorPrimary"] = onAccent;
         resources["TextOnAccentFillColorPrimaryBrush"] = Frozen(onAccent);
+        // The selected page in the navigation pane sits on a tint of the accent.
+        resources["NavigationViewItemBackgroundSelected"] = Frozen(WithAlpha(accent, 0x26));
+        resources["NavigationViewItemBackgroundSelectedLeftFluent"] = Frozen(WithAlpha(accent, 0x26));
         resources["ApplicationBackgroundColor"] = neutral.Background;
         resources["ApplicationBackgroundBrush"] = Frozen(neutral.Background);
     }

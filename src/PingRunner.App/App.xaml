@@ -10,6 +10,22 @@
                 <ui:ControlsDictionary />
                 <ResourceDictionary Source="Resources/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!--
+              Secondary actions as tonal buttons: accent text and icon on a tint of the accent. Defined
+              here rather than in Styles.xaml because it builds on WPF UI's button style, which only the
+              application dictionary can reach with StaticResource.
+            -->
+            <Style x:Key="PR.TonalButton" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                <Setter Property="Background" Value="{DynamicResource PR.AccentSoftBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource PR.AccentBrush}" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="MouseOverBackground" Value="{DynamicResource PR.AccentHoverBrush}" />
+                <Setter Property="MouseOverBorderBrush" Value="Transparent" />
+                <Setter Property="PressedBackground" Value="{DynamicResource PR.AccentPressedBrush}" />
+                <Setter Property="PressedBorderBrush" Value="Transparent" />
+                <Setter Property="PressedForeground" Value="{DynamicResource PR.AccentBrush}" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

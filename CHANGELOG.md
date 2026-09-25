@@ -18,7 +18,8 @@ Everything below ships as 2.0.0.
   bufferbloat grade, with a live chart and this session's history.
 - A Connection page with the adapter, link speed, addresses, gateway and DNS servers, one-click pings
   to each, and the public IP (hidden until shown).
-- Light, dark and Windows themes, and four accent colors.
+- Light, dark and Windows themes, and four accent colors. The accent tints each page's header icon,
+  the figure icons, section labels, secondary buttons and the selected page in the menu.
 - Copy a text summary of a session.
 - Graph: ranges up to 24 hours, zoom with the mouse wheel at the pointer, drag to pan, hover readout,
   and figures for exactly what is on screen.

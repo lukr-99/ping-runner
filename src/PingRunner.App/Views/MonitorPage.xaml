@@ -16,26 +16,18 @@
         </Grid.RowDefinitions>
 
         <!-- Title and live status. -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,12">
-            <Border DockPanel.Dock="Right"
-                    VerticalAlignment="Center"
-                    Padding="12,6"
-                    CornerRadius="14"
-                    Background="{DynamicResource PR.SurfaceBrush}"
-                    BorderBrush="{DynamicResource PR.BorderBrush}"
-                    BorderThickness="1">
-                <StackPanel Orientation="Horizontal">
-                    <Ellipse Style="{StaticResource PR.StatusDot}" VerticalAlignment="Center" />
-                    <TextBlock Margin="8,0,0,0" Text="{Binding StatusText}" FontWeight="SemiBold" VerticalAlignment="Center" />
-                    <TextBlock Margin="10,0,0,0" Text="{Binding ElapsedText}" FontFamily="Consolas" VerticalAlignment="Center"
-                               Foreground="{DynamicResource PR.TextSecondaryBrush}" />
-                </StackPanel>
-            </Border>
-            <StackPanel>
-                <TextBlock Style="{StaticResource PR.PageTitle}" Text="Monitor" />
-                <TextBlock Style="{StaticResource PR.PageSubtitle}" Text="Latency, jitter, packet loss and outages, live." />
-            </StackPanel>
-        </DockPanel>
+        <controls:PageHeader Grid.Row="0" Icon="Pulse24" Title="Monitor" Subtitle="Latency, jitter, packet loss and outages, live.">
+            <controls:PageHeader.Actions>
+                <Border Style="{StaticResource PR.StatusPill}">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Style="{StaticResource PR.StatusDot}" VerticalAlignment="Center" />
+                        <TextBlock Margin="8,0,0,0" Text="{Binding StatusText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <TextBlock Margin="10,0,0,0" Text="{Binding ElapsedText}" FontFamily="Consolas" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource PR.TextSecondaryBrush}" />
+                    </StackPanel>
+                </Border>
+            </controls:PageHeader.Actions>
+        </controls:PageHeader>
 
         <!-- The run form. -->
         <Border Grid.Row="1" Style="{StaticResource PR.Card}" Padding="16,12">
@@ -83,12 +75,12 @@
                                Height="34"
                                Command="{Binding StopCommand}"
                                Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}" />
-                    <ui:Button Margin="8,0,0,0"
+                    <ui:Button Style="{StaticResource PR.TonalButton}" Margin="8,0,0,0"
                                Height="34"
                                Icon="{ui:SymbolIcon Copy24}"
                                ToolTip="Copy a text summary of this session"
                                Command="{Binding CopySummaryCommand}" />
-                    <ui:Button Margin="6,0,0,0"
+                    <ui:Button Style="{StaticResource PR.TonalButton}" Margin="6,0,0,0"
                                Height="34"
                                Icon="{ui:SymbolIcon Delete24}"
                                ToolTip="Clear the session"
@@ -107,14 +99,14 @@
 
         <!-- The figures. -->
         <primitives:UniformGrid Grid.Row="3" Margin="-4,8,-4,4" Columns="4" Rows="2">
-            <controls:StatTile Margin="4" Label="Average latency" Value="{Binding Stats.Average}" Hint="{Binding Stats.AverageHint}" />
-            <controls:StatTile Margin="4" Label="Median" Value="{Binding Stats.Median}" Hint="{Binding Stats.Percentiles}" />
-            <controls:StatTile Margin="4" Label="Jitter" Value="{Binding Stats.Jitter}" Hint="{Binding Stats.JitterHint}" />
-            <controls:StatTile Margin="4" Label="Packet loss" Value="{Binding Stats.Loss}" Hint="{Binding Stats.LossHint}" Severity="{Binding Stats.LossSeverity}" />
-            <controls:StatTile Margin="4" Label="Call quality" Value="{Binding Stats.Quality}" Hint="{Binding Stats.QualityHint}" Severity="{Binding Stats.QualitySeverity}" />
-            <controls:StatTile Margin="4" Label="Outages" Value="{Binding Stats.Outages}" Hint="{Binding Stats.OutagesHint}" Severity="{Binding Stats.OutageSeverity}" />
-            <controls:StatTile Margin="4" Label="Pings sent" Value="{Binding Stats.Sent}" Hint="{Binding Stats.SentHint}" />
-            <controls:StatTile Margin="4" Label="Worst spikes" Value="{Binding Stats.Spikes}" Hint="Mean of the 50 slowest replies" />
+            <controls:StatTile Margin="4" Icon="Timer24" Label="Average latency" Value="{Binding Stats.Average}" Hint="{Binding Stats.AverageHint}" />
+            <controls:StatTile Margin="4" Icon="DataHistogram24" Label="Median" Value="{Binding Stats.Median}" Hint="{Binding Stats.Percentiles}" />
+            <controls:StatTile Margin="4" Icon="ArrowSwap24" Label="Jitter" Value="{Binding Stats.Jitter}" Hint="{Binding Stats.JitterHint}" />
+            <controls:StatTile Margin="4" Icon="WifiWarning24" Label="Packet loss" Value="{Binding Stats.Loss}" Hint="{Binding Stats.LossHint}" Severity="{Binding Stats.LossSeverity}" />
+            <controls:StatTile Margin="4" Icon="Call24" Label="Call quality" Value="{Binding Stats.Quality}" Hint="{Binding Stats.QualityHint}" Severity="{Binding Stats.QualitySeverity}" />
+            <controls:StatTile Margin="4" Icon="PlugDisconnected24" Label="Outages" Value="{Binding Stats.Outages}" Hint="{Binding Stats.OutagesHint}" Severity="{Binding Stats.OutageSeverity}" />
+            <controls:StatTile Margin="4" Icon="Send24" Label="Pings sent" Value="{Binding Stats.Sent}" Hint="{Binding Stats.SentHint}" />
+            <controls:StatTile Margin="4" Icon="Flash24" Label="Worst spikes" Value="{Binding Stats.Spikes}" Hint="Mean of the 50 slowest replies" />
         </primitives:UniformGrid>
 
         <!-- The last two minutes, and the newest pings. -->
@@ -156,7 +148,7 @@
                                         <TextBlock Grid.Column="1" Text="{Binding Latency}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="{DynamicResource PR.TextPrimaryBrush}" />
+                                                    <Setter Property="Foreground" Value="{DynamicResource PR.AccentBrush}" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsLost}" Value="True">
                                                             <Setter Property="Foreground" Value="{DynamicResource PR.DangerBrush}" />

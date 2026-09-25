@@ -39,7 +39,13 @@
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Margin" Value="0,0,0,8" />
-        <Setter Property="Foreground" Value="{DynamicResource PR.TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PR.AccentBrush}" />
+    </Style>
+
+    <!-- A figure in the accent color, for readings that carry no warning. -->
+    <Style x:Key="PR.AccentValue" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource PR.AccentBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <Style x:Key="PR.FieldLabel" TargetType="TextBlock">
@@ -83,7 +89,22 @@
         <Setter Property="Fill" Value="{DynamicResource PR.TextSecondaryBrush}" />
         <Style.Triggers>
             <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                <Setter Property="Fill" Value="{DynamicResource PR.SuccessBrush}" />
+                <Setter Property="Fill" Value="{DynamicResource PR.AccentBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- The status pill: neutral while idle, tinted with the accent while something runs. -->
+    <Style x:Key="PR.StatusPill" TargetType="Border">
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Background" Value="{DynamicResource PR.SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PR.BorderBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PR.AccentSoftBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource PR.AccentBrush}" />
             </DataTrigger>
         </Style.Triggers>
     </Style>

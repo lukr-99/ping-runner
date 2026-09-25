@@ -2,6 +2,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:controls="clr-namespace:PingRunner.App.Controls"
       Title="Connection"
       Foreground="{DynamicResource PR.TextPrimaryBrush}">
     <Page.Resources>
@@ -22,17 +23,15 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <DockPanel Grid.Row="0" Margin="0,0,0,12">
-            <ui:Button DockPanel.Dock="Right"
-                       VerticalAlignment="Center"
-                       Content="Refresh"
-                       Icon="{ui:SymbolIcon ArrowClockwise24}"
-                       Command="{Binding RefreshCommand}" />
-            <StackPanel>
-                <TextBlock Style="{StaticResource PR.PageTitle}" Text="Connection" />
-                <TextBlock Style="{StaticResource PR.PageSubtitle}" Text="The adapter carrying your internet traffic, and where to point a ping." />
-            </StackPanel>
-        </DockPanel>
+        <controls:PageHeader Grid.Row="0" Icon="Router24" Title="Connection"
+                             Subtitle="The adapter carrying your internet traffic, and where to point a ping.">
+            <controls:PageHeader.Actions>
+                <ui:Button Content="Refresh"
+                           Style="{StaticResource PR.TonalButton}"
+                           Icon="{ui:SymbolIcon ArrowClockwise24}"
+                           Command="{Binding RefreshCommand}" />
+            </controls:PageHeader.Actions>
+        </controls:PageHeader>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <Grid>
@@ -64,7 +63,8 @@
 
                             <TextBlock Grid.Row="0" Style="{StaticResource Key}" Text="Adapter" />
                             <StackPanel Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,8,0,8">
-                                <TextBlock Style="{StaticResource PR.Body}" FontWeight="SemiBold" Text="{Binding AdapterName}" />
+                                <TextBlock Style="{StaticResource PR.Body}" FontWeight="SemiBold" Text="{Binding AdapterName}"
+                                           Foreground="{DynamicResource PR.AccentBrush}" />
                                 <TextBlock Style="{StaticResource PR.Hint}" Text="{Binding AdapterDescription}" />
                             </StackPanel>
 
@@ -79,12 +79,12 @@
 
                             <TextBlock Grid.Row="4" Style="{StaticResource Key}" Text="Gateway" />
                             <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource Value}" FontFamily="Consolas" Text="{Binding Gateway, TargetNullValue=–}" />
-                            <ui:Button Grid.Row="4" Grid.Column="2" Margin="8,4,0,4" Content="Ping" Icon="{ui:SymbolIcon Pulse24}"
+                            <ui:Button Style="{StaticResource PR.TonalButton}" Grid.Row="4" Grid.Column="2" Margin="8,4,0,4" Content="Ping" Icon="{ui:SymbolIcon Pulse24}"
                                        Command="{Binding PingGatewayCommand}" ToolTip="Ping your router: problems here are inside your home network" />
 
                             <TextBlock Grid.Row="5" Style="{StaticResource Key}" Text="DNS servers" />
                             <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource Value}" FontFamily="Consolas" Text="{Binding DnsServers}" />
-                            <ui:Button Grid.Row="5" Grid.Column="2" Margin="8,4,0,4" VerticalAlignment="Top" Content="Ping" Icon="{ui:SymbolIcon Pulse24}"
+                            <ui:Button Style="{StaticResource PR.TonalButton}" Grid.Row="5" Grid.Column="2" Margin="8,4,0,4" VerticalAlignment="Top" Content="Ping" Icon="{ui:SymbolIcon Pulse24}"
                                        Command="{Binding PingDnsCommand}" />
                         </Grid>
                     </StackPanel>
@@ -97,10 +97,11 @@
                             <TextBlock Style="{StaticResource PR.FieldLabel}" Text="Public IP address" />
                             <DockPanel>
                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                    <ui:Button Content="{Binding PublicIpToggleText}" Icon="{ui:SymbolIcon Eye24}" Command="{Binding TogglePublicIpCommand}" />
-                                    <ui:Button Margin="6,0,0,0" Icon="{ui:SymbolIcon Copy24}" ToolTip="Copy" Command="{Binding CopyPublicIpCommand}" />
+                                    <ui:Button Style="{StaticResource PR.TonalButton}" Content="{Binding PublicIpToggleText}" Icon="{ui:SymbolIcon Eye24}" Command="{Binding TogglePublicIpCommand}" />
+                                    <ui:Button Style="{StaticResource PR.TonalButton}" Margin="6,0,0,0" Icon="{ui:SymbolIcon Copy24}" ToolTip="Copy" Command="{Binding CopyPublicIpCommand}" />
                                 </StackPanel>
-                                <TextBlock Text="{Binding PublicIpText}" FontSize="20" FontWeight="SemiBold" FontFamily="Consolas" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding PublicIpText}" FontSize="20" FontWeight="SemiBold" FontFamily="Consolas" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource PR.AccentBrush}" />
                             </DockPanel>
                             <TextBlock Margin="0,10,0,0" Style="{StaticResource PR.Hint}"
                                        Text="Asked of api.ipify.org (or checkip.amazonaws.com) when this page opens, and hidden until you show it." />
@@ -116,13 +117,13 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <DockPanel Margin="0,4">
-                                            <ui:Button DockPanel.Dock="Right" Content="Ping" Icon="{ui:SymbolIcon Pulse24}"
+                                            <ui:Button Style="{StaticResource PR.TonalButton}" DockPanel.Dock="Right" Content="Ping" Icon="{ui:SymbolIcon Pulse24}"
                                                        Command="{Binding DataContext.PingHostCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                        CommandParameter="{Binding Host}" />
                                             <TextBlock VerticalAlignment="Center" Style="{StaticResource PR.Body}">
                                                 <Run Text="{Binding Name, Mode=OneWay}" FontWeight="SemiBold" />
                                                 <Run Text="  " />
-                                                <Run Text="{Binding Host, Mode=OneWay}" FontFamily="Consolas" Foreground="{DynamicResource PR.TextSecondaryBrush}" />
+                                                <Run Text="{Binding Host, Mode=OneWay}" FontFamily="Consolas" Foreground="{DynamicResource PR.AccentBrush}" />
                                             </TextBlock>
                                         </DockPanel>
                                     </DataTemplate>
