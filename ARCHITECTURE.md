@@ -22,8 +22,11 @@ call goes through an interface that Infrastructure implements and tests replace.
 | --- | --- | --- |
 | `Pinging` | `PingRunSettings` (validated form), `PingLoop` (fixed cadence on a `TimeProvider`), `PingAttempt` | `IPingSender` |
 | `Statistics` | `PingStatistics`, `LatencyDistribution`, `Outage`, `CallQuality` | none, pure |
-| `Sessions` | `PingSession` (the live, bounded buffer), `PingAttemptCsv` (the file format) | none |
-| `History` | `RunRecorder` (saves each run as it goes), `RunRecord`, `RunSummary`, `SpeedTestRecord` | `IPingRunHistory`, `ISpeedTestHistory`, `IHistoryMaintenance` |
+| `Sessions` | `PingSession` (the live, bounded buffer), `PingAttemptCsv` (writes the file format) | none |
+| `Importing` | `PingRowReader` (columns by header, values as people write them), `PingCsvReader`, `PingFileImporter` (reader by extension), `PingImport` | `IPingFileReader` |
+| `Reports` | `ReportBuilder` (statistics, clock-aligned slices, findings, method), `ConnectionReport`, `ReportText` | `IReportWriter` |
+| `Formatting` | `Units`: how every measurement is written, shared by the app and reports | none |
+| `History` | `RunRecorder` (saves each run as it goes), `RunRecord` (recorded or imported), `RunSummary`, `SpeedTestRecord` | `IPingRunHistory`, `ISpeedTestHistory`, `IHistoryMaintenance` |
 | `Throughput` | `ThroughputMeter`, `ThroughputTest` (parallel streams, sampling) | `IThroughputEndpoint` |
 | `SpeedTest` | `SpeedTestRunner` (idle, download, upload, with loaded pings), `Bufferbloat` | uses both seams above |
 | `Graphing` | `GraphRange`, `GraphZoom` (zoom and pan maths), `LatencyDownsampler` | none |
@@ -34,7 +37,10 @@ call goes through an interface that Infrastructure implements and tests replace.
 `PingRunner.Infrastructure` (`net10.0`) has one adapter per seam: `IcmpPingSender`,
 `CloudflareSpeedEndpoint`, `SystemConnectionInfoSource`, `PublicIpService`, `JsonSettingsStore`,
 `GitHubReleaseSource`, the SQLite history (`SqliteHistoryDatabase`, `SqlitePingRunHistory`,
-`SqliteSpeedTestHistory`, `SqliteMigrator`), and `AppDataPaths` for where files go.
+`SqliteSpeedTestHistory`, `SqliteMigrator`), `ExcelPingReader` (ClosedXML), the report writers
+`PdfReportWriter` (PDFsharp and MigraDoc, with `WindowsFontResolver`) and `ExcelReportWriter`
+(ClosedXML), and `AppDataPaths` for where files go. The file readers and report writers only touch the
+stream they are handed, so `AppAdapters` sets the real ones by default and tests use them too.
 
 `PingRunner.App` (`net10.0-windows`, WPF UI 4.3, CommunityToolkit.Mvvm) holds the views, view models,
 charts and theming. Its composition root is `Composition/AppGraph`, built from an `AppAdapters` set:
@@ -70,6 +76,19 @@ A speed test runs `SpeedTestRunner`: up to ten idle pings to 1.1.1.1 (it gives u
 ones), then download and upload through `ThroughputTest`. Each direction starts its streams on the thread
 pool, samples the shared byte counter every 200 ms, reports progress to the page, and keeps pinging
 underneath for loaded latency.
+
+An import reads a file through `PingFileImporter`, which picks `PingCsvReader` or `ExcelPingReader` by
+extension. Both find columns by header through `PingRowReader`, so a column order or a spreadsheet's
+re-save does not matter, and both leave unreadable rows out with their line numbers. The Graph shows an
+import directly; the History stores it with `IPingRunHistory.ImportRunAsync`, one run per target.
+
+A report starts on the Reports page. `ReportsViewModel` gathers the pings through `ReportSources` (the
+session, the Graph's source, one stored run, or a target's stored runs cut to a date range), and
+`ReportBuilder` turns them into a `ConnectionReport`: the statistics, at most 48 clock-aligned slices,
+the speed tests inside the period, findings and method notes, all in the offset the pings were measured
+in. The preview shows its figures and findings. Saving adds the connection snapshot and, only if ticked,
+the public IP, draws the charts with `Reports/ReportChartRenderer` (off screen, light palette, the
+app's accent, twice the layout size) and hands the report to the chosen `IReportWriter`.
 
 ## Outside services
 
@@ -112,9 +131,14 @@ stored as Unix milliseconds plus the local offset in minutes, so records read ba
 - **Retention**: nothing is deleted automatically. Runs and speed tests go when the user deletes them
   or clears the history.
 
-The session CSV (`Timestamp,TargetHost,IsSuccess,RoundtripTimeMilliseconds,Details`) is the backup
-and exchange format, unchanged from 1.x. Import checks every row, caps line length and row count, and
-names the first bad line instead of loading half a file.
+`ping_runs.source` (`recorded` or `imported`) and `source_name` came with migration `0002`; runs from
+before it read as recorded. CI tests `0002` from `0001` with representative rows
+(`tests/PingRunner.Infrastructure.Tests/History/Fixtures`), and so does `SqliteMigratorTests`.
+
+The session CSV (`Timestamp,TargetHost,IsSuccess,RoundtripTimeMilliseconds,Details`) is the exchange
+format, unchanged from 1.x. Import is looser than export: it takes the columns by name and in any order,
+caps line length, row count and workbook size, and leaves bad rows out with their line numbers. The
+Excel report's Pings sheet uses the same column names, so a report imports back.
 
 ## Theming
 
@@ -156,6 +180,7 @@ window off screen, visits every page in both themes and fails on any binding err
 - [0001: WPF UI instead of dotnetlib](docs/adr/0001-wpf-ui-instead-of-dotnetlib.md)
 - [0002: Cloudflare for the speed test](docs/adr/0002-cloudflare-for-the-speed-test.md)
 - [0003: SQLite for the history](docs/adr/0003-sqlite-for-the-history.md)
+- [0004: PDFsharp and ClosedXML for reports](docs/adr/0004-pdfsharp-and-closedxml-for-reports.md)
 
 ## Known constraints
 
@@ -165,3 +190,7 @@ window off screen, visits every page in both themes and fails on any binding err
 - Upload bytes are counted as they are written to the socket, a little ahead of what the server has
   received. Leaving the first second out of the average absorbs most of that.
 - The speed test measures the path to Cloudflare's nearest data centre, not to any other server.
+- A report's connection details and public IP are read when the report is made, which may be long
+  after the pings; the report says so.
+- Excel stores times without an offset, so the workbook writes clock times in the measured offset and
+  puts the offset in its own column or header.

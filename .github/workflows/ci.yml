@@ -32,6 +32,9 @@ jobs:
       - name: History migrations, full chain and latest in isolation
         run: python tools/migrations.py test src/PingRunner.Infrastructure/History/Migrations
 
+      - name: History migration 0002 from 0001 with representative rows
+        run: python tools/migrations.py test src/PingRunner.Infrastructure/History/Migrations --migration 2 --fixture tests/PingRunner.Infrastructure.Tests/History/Fixtures/before_0002_add_run_source.sql
+
       - name: Check PowerShell syntax
         shell: pwsh
         run: ./tools/test-powershell-syntax.ps1

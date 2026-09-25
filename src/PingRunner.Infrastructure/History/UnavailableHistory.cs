@@ -20,6 +20,9 @@ public sealed class UnavailableHistory(string location, string problem) : IPingR
 
     public Task FinishRunAsync(long runId, RunOutcome outcome, DateTimeOffset? endedAt, RunSummary summary, CancellationToken cancellationToken) => Task.CompletedTask;
 
+    public Task<long> ImportRunAsync(string sourceName, IReadOnlyList<PingAttempt> attempts, RunSummary summary, CancellationToken cancellationToken) =>
+        Task.FromException<long>(new HistoryException(Problem ?? "The history is unavailable."));
+
     public Task<IReadOnlyList<RunRecord>> ListRunsAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<RunRecord>>([]);
 
     public Task<IReadOnlyList<PingAttempt>> LoadAttemptsAsync(long runId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<PingAttempt>>([]);

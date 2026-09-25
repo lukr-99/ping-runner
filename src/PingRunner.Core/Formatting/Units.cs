@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace PingRunner.App.Formatting;
+namespace PingRunner.Core.Formatting;
 
 /// <summary>How Ping Runner writes its measurements: milliseconds, rates, sizes, shares and spans.</summary>
 public static class Units

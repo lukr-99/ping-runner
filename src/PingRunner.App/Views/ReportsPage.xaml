@@ -1,0 +1,153 @@
+<Page x:Class="PingRunner.App.Views.ReportsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:controls="clr-namespace:PingRunner.App.Controls"
+      xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
+      Title="Reports"
+      Foreground="{DynamicResource PR.TextPrimaryBrush}">
+    <Page.Resources>
+        <Style x:Key="Choice" TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
+            <Setter Property="Margin" Value="0,6,0,0" />
+            <Setter Property="GroupName" Value="ReportSource" />
+        </Style>
+    </Page.Resources>
+
+    <Grid Margin="{StaticResource PR.PagePadding}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:PageHeader Grid.Row="0" Icon="DocumentPdf24" Title="Reports"
+                             Subtitle="Evidence of how the connection behaved: a PDF to hand over, or an Excel workbook with every figure." />
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="400" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- What to report on, and what goes in. -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <Border Style="{StaticResource PR.Card}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource PR.SectionLabel}" Text="REPORT ON" />
+                            <RadioButton Style="{StaticResource Choice}" Content="The live session" IsChecked="{Binding IsLiveSession}" />
+                            <RadioButton Style="{StaticResource Choice}" Content="What the Graph shows" IsChecked="{Binding IsGraphView}"
+                                         IsEnabled="{Binding GraphShowsOtherData}" />
+                            <TextBlock Style="{StaticResource PR.Hint}" Margin="28,0,0,4" Text="{Binding GraphLabel}" TextWrapping="Wrap" />
+                            <RadioButton Style="{StaticResource Choice}" Content="A stored run" IsChecked="{Binding IsStoredRun}" />
+                            <ComboBox Margin="28,4,0,4" ItemsSource="{Binding Runs}" SelectedItem="{Binding SelectedRun}"
+                                      DisplayMemberPath="Label" />
+                            <RadioButton Style="{StaticResource Choice}" Content="Everything stored for a target" IsChecked="{Binding IsHistoryPeriod}" />
+                            <Grid Margin="28,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <ComboBox Grid.Row="0" Grid.ColumnSpan="3" ItemsSource="{Binding Targets}" SelectedItem="{Binding SelectedTarget}" />
+                                <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource PR.FieldLabel}" Margin="0,8,0,4" Text="From" />
+                                <TextBlock Grid.Row="1" Grid.Column="2" Style="{StaticResource PR.FieldLabel}" Margin="0,8,0,4" Text="To" />
+                                <DatePicker Grid.Row="2" Grid.Column="0" SelectedDateFormat="Short" SelectedDate="{Binding PeriodFrom}" />
+                                <DatePicker Grid.Row="2" Grid.Column="2" SelectedDateFormat="Short" SelectedDate="{Binding PeriodTo}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Margin="0,12,0,0" Style="{StaticResource PR.Card}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource PR.SectionLabel}" Text="DETAILS" />
+                            <TextBlock Style="{StaticResource PR.FieldLabel}" Margin="0,4,0,4" Text="Title" />
+                            <ui:TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Connection report" />
+                            <TextBlock Style="{StaticResource PR.FieldLabel}" Margin="0,10,0,4" Text="Notes" />
+                            <ui:TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinLines="3"
+                                        PlaceholderText="A ticket number, the address, what was happening…" />
+                            <CheckBox Margin="0,12,0,0" Content="Speed tests run in the period" IsChecked="{Binding IncludeSpeedTests}" />
+                            <CheckBox Margin="0,4,0,0" Content="Connection details (adapter, gateway, DNS)" IsChecked="{Binding IncludeConnection}" />
+                            <CheckBox Margin="0,4,0,0" Content="Public IP address" IsChecked="{Binding IncludePublicIp}" />
+                            <TextBlock Style="{StaticResource PR.Hint}" Margin="28,0,0,0" TextWrapping="Wrap"
+                                       Text="It identifies your connection, so it stays out unless you tick it." />
+                            <CheckBox Margin="0,4,0,0" Content="Every ping, in the Excel workbook" IsChecked="{Binding IncludeAllPings}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- What the report will say, and saving it. -->
+            <Border Grid.Column="2" Style="{StaticResource PR.Card}">
+                <DockPanel>
+                    <DockPanel DockPanel.Dock="Top">
+                        <ui:Button DockPanel.Dock="Right" Style="{StaticResource PR.TonalButton}" Icon="{ui:SymbolIcon ArrowClockwise24}" Content="Refresh"
+                                   Command="{Binding RefreshPreviewCommand}" ToolTip="Take the pings again, for a session still running" />
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource PR.SectionLabel}" Text="PREVIEW" />
+                            <TextBlock Style="{StaticResource PR.AccentValue}" FontSize="15" Text="{Binding PreviewHeading}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </DockPanel>
+
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon DocumentPdf24}" Content="Save PDF…" Command="{Binding SavePdfCommand}"
+                                       ToolTip="A report to print or hand over" />
+                            <ui:Button Margin="8,0,0,0" Style="{StaticResource PR.TonalButton}" Icon="{ui:SymbolIcon Table24}" Content="Save Excel…"
+                                       Command="{Binding SaveExcelCommand}" ToolTip="The same report as a workbook, with a sheet per table and every ping" />
+                            <ui:ProgressRing Margin="12,0,0,0" Width="20" Height="20" IsIndeterminate="True"
+                                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+                        </StackPanel>
+                        <DockPanel Margin="0,10,0,0" Visibility="{Binding HasSaved, Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <ui:Button Style="{StaticResource PR.TonalButton}" Icon="{ui:SymbolIcon Open24}" Content="Open" Command="{Binding OpenSavedCommand}" />
+                                <ui:Button Margin="6,0,0,0" Style="{StaticResource PR.TonalButton}" Icon="{ui:SymbolIcon Folder24}" Content="Show in folder"
+                                           Command="{Binding ShowSavedInFolderCommand}" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource PR.Hint}" VerticalAlignment="Center" Text="{Binding SavedText}" TextWrapping="Wrap" />
+                        </DockPanel>
+                        <TextBlock Margin="0,10,0,0" Style="{StaticResource PR.Hint}" Text="{Binding SavedText}"
+                                   Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+                    </StackPanel>
+
+                    <Grid>
+                        <TextBlock Margin="0,16,0,0" Style="{StaticResource PR.Hint}" FontSize="13" Text="{Binding PreviewMessage}" TextWrapping="Wrap"
+                                   Visibility="{Binding PingCount, Converter={StaticResource ZeroToVisible}}" />
+                        <DockPanel Visibility="{Binding HasPreview, Converter={StaticResource BoolToVisibility}}">
+                            <primitives:UniformGrid DockPanel.Dock="Top" Margin="-4,8,-4,0" Columns="3" Rows="2">
+                                <controls:StatTile Margin="4" ValueSize="18" Icon="Send24" Label="Pings" Value="{Binding Stats.Sent}" Hint="{Binding Stats.SentHint}" />
+                                <controls:StatTile Margin="4" ValueSize="18" Icon="WifiWarning24" Label="Packet loss" Value="{Binding Stats.Loss}"
+                                                   Hint="{Binding Stats.LossHint}" Severity="{Binding Stats.LossSeverity}" />
+                                <controls:StatTile Margin="4" ValueSize="18" Icon="PlugDisconnected24" Label="Outages" Value="{Binding Stats.Outages}"
+                                                   Hint="{Binding Stats.OutagesHint}" Severity="{Binding Stats.OutageSeverity}" />
+                                <controls:StatTile Margin="4" ValueSize="18" Icon="DataHistogram24" Label="Median" Value="{Binding Stats.Median}" Hint="{Binding Stats.Percentiles}" />
+                                <controls:StatTile Margin="4" ValueSize="18" Icon="ArrowSwap24" Label="Jitter" Value="{Binding Stats.Jitter}" Hint="{Binding Stats.JitterHint}" />
+                                <controls:StatTile Margin="4" ValueSize="18" Icon="Call24" Label="Call quality" Value="{Binding Stats.Quality}"
+                                                   Hint="{Binding Stats.QualityHint}" Severity="{Binding Stats.QualitySeverity}" />
+                            </primitives:UniformGrid>
+                            <TextBlock DockPanel.Dock="Top" Margin="0,14,0,4" Style="{StaticResource PR.SectionLabel}" Text="FINDINGS" />
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding Findings}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <DockPanel Margin="0,3">
+                                                <Ellipse DockPanel.Dock="Left" Width="6" Height="6" Margin="2,7,10,0" VerticalAlignment="Top"
+                                                         Fill="{DynamicResource PR.AccentBrush}" />
+                                                <TextBlock Style="{StaticResource PR.Body}" Text="{Binding}" TextWrapping="Wrap" />
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Grid>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>

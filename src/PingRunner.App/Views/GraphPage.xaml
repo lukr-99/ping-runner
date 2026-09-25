@@ -11,6 +11,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" MinHeight="260" />
         </Grid.RowDefinitions>
 
@@ -28,13 +29,19 @@
         <Border Grid.Row="1" Style="{StaticResource PR.Card}" Padding="16,10">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <ui:Button Style="{StaticResource PR.TonalButton}" Content="Import CSV" Icon="{ui:SymbolIcon ArrowImport24}" Command="{Binding ImportCommand}" />
-                    <ui:Button Style="{StaticResource PR.TonalButton}" Margin="6,0,0,0" Content="Export view" Icon="{ui:SymbolIcon ArrowExportLtr24}" Command="{Binding ExportVisibleCommand}"
-                               ToolTip="The pings on screen, as CSV" />
-                    <ui:Button Style="{StaticResource PR.TonalButton}" Margin="6,0,0,0" Content="Export all" Icon="{ui:SymbolIcon Save24}" Command="{Binding ExportAllCommand}"
-                               ToolTip="Every ping in the source, as CSV" />
-                    <ui:Button Style="{StaticResource PR.TonalButton}" Margin="6,0,0,0" Content="PNG" Icon="{ui:SymbolIcon Image24}" Click="ExportPng_OnClick"
-                               ToolTip="The chart and its figures, as an image" />
+                    <ui:Button Style="{StaticResource PR.TonalButton}" Content="Import" Icon="{ui:SymbolIcon ArrowImport24}" Command="{Binding ImportCommand}"
+                               ToolTip="Ping data from a CSV file or an Excel workbook" />
+                    <ui:DropDownButton Margin="6,0,0,0" Content="Export" Icon="{ui:SymbolIcon ArrowExportLtr24}">
+                        <ui:DropDownButton.Flyout>
+                            <ContextMenu x:Name="ExportMenu">
+                                <MenuItem Header="Pings on screen, as CSV" Command="{Binding ExportVisibleCommand}" />
+                                <MenuItem Header="Every ping in the source, as CSV" Command="{Binding ExportAllCommand}" />
+                                <MenuItem Header="Chart and figures, as a PNG image" Click="ExportPng_OnClick" />
+                            </ContextMenu>
+                        </ui:DropDownButton.Flyout>
+                    </ui:DropDownButton>
+                    <ui:Button Margin="6,0,0,0" Appearance="Primary" Content="Report" Icon="{ui:SymbolIcon DocumentPdf24}" Command="{Binding RequestReportCommand}"
+                               ToolTip="A PDF or Excel report of what the Graph shows" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Style="{StaticResource PR.FieldLabel}" Margin="0,0,8,0" VerticalAlignment="Center" Text="Range" />
@@ -44,8 +51,16 @@
             </DockPanel>
         </Border>
 
+        <ui:InfoBar Grid.Row="2"
+                    Margin="0,8,0,0"
+                    Title="Import"
+                    Message="{Binding Notice}"
+                    Severity="Informational"
+                    IsClosable="True"
+                    IsOpen="{Binding HasNotice, Mode=TwoWay}" />
+
         <!-- Everything below is what "PNG" exports. -->
-        <Grid x:Name="ExportSurface" Grid.Row="2" Grid.RowSpan="2" Background="{DynamicResource PR.BackgroundBrush}">
+        <Grid x:Name="ExportSurface" Grid.Row="3" Grid.RowSpan="2" Background="{DynamicResource PR.BackgroundBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -80,7 +95,7 @@
                                            Attempts="{Binding RangedAttempts}"
                                            Zoom="{Binding Zoom, Mode=TwoWay}"
                                            IsInteractive="True"
-                                           EmptyText="No pings to show. Start a run on the Monitor page, or import a CSV." />
+                                           EmptyText="No pings to show. Start a run on the Monitor page, or import a file." />
                 </DockPanel>
             </Border>
         </Grid>

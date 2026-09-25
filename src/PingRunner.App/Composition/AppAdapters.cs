@@ -1,14 +1,18 @@
 using System.Net;
 using System.Net.Http;
 using PingRunner.Core.History;
+using PingRunner.Core.Importing;
 using PingRunner.Core.Network;
 using PingRunner.Core.Pinging;
+using PingRunner.Core.Reports;
 using PingRunner.Core.Settings;
 using PingRunner.Core.Throughput;
 using PingRunner.Core.Updates;
 using PingRunner.Infrastructure.History;
+using PingRunner.Infrastructure.Importing;
 using PingRunner.Infrastructure.Network;
 using PingRunner.Infrastructure.Pinging;
+using PingRunner.Infrastructure.Reports;
 using PingRunner.Infrastructure.Settings;
 using PingRunner.Infrastructure.Storage;
 using PingRunner.Infrastructure.Throughput;
@@ -74,6 +78,12 @@ public sealed class AppAdapters : IDisposable
     public IHistoryMaintenance History { get; }
 
     public string DataFolder { get; }
+
+    /// <summary>Readers for imported ping files. They only read the stream they are handed, so tests use the real ones.</summary>
+    public IReadOnlyList<IPingFileReader> FileReaders { get; init; } = [new PingCsvReader(), new ExcelPingReader()];
+
+    /// <summary>Report formats. They only write the stream they are handed, so tests use the real ones.</summary>
+    public IReadOnlyList<IReportWriter> ReportWriters { get; init; } = [new PdfReportWriter(), new ExcelReportWriter()];
 
     /// <summary>The real adapters, with settings in this build's own data folder.</summary>
     public static AppAdapters ForUser(BuildInfo build)

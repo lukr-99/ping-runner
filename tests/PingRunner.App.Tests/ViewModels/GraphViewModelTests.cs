@@ -1,4 +1,5 @@
 using System.IO;
+using ClosedXML.Excel;
 using PingRunner.App.Tests.Hosting;
 using PingRunner.Core.Graphing;
 
@@ -60,6 +61,44 @@ public sealed class GraphViewModelTests
             graph.UseLiveDataCommand.Execute(null);
             Assert.False(graph.IsImported);
             Assert.Empty(graph.RangedAttempts);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    });
+
+    [Fact]
+    public Task Import_ExcelWorkbook_ShowsItAndSaysWhatWasRead() => WpfHost.RunAsync(async () =>
+    {
+        using var app = TestApp.Create();
+        var path = Path.Combine(Path.GetTempPath(), $"pingrunner-{Guid.NewGuid():N}.xlsx");
+        using (var workbook = new XLWorkbook())
+        {
+            var sheet = workbook.AddWorksheet("Log");
+            sheet.Cell(1, 1).Value = "Time";
+            sheet.Cell(1, 2).Value = "Latency";
+            sheet.Cell(2, 1).Value = new DateTime(2026, 9, 25, 10, 0, 0);
+            sheet.Cell(2, 2).Value = 20;
+            sheet.Cell(3, 1).Value = new DateTime(2026, 9, 25, 10, 0, 1);
+            sheet.Cell(3, 2).Value = 22;
+            workbook.SaveAs(path);
+        }
+
+        app.Desktop.FileToOpen = path;
+        try
+        {
+            var graph = app.Graph.Graph;
+
+            await graph.ImportCommand.ExecuteAsync(null);
+
+            Assert.True(graph.IsImported);
+            Assert.Equal(2, graph.RangedAttempts.Count);
+            Assert.Equal($"Read 2 pings from {Path.GetFileName(path)}.", graph.Notice);
+            Assert.Equal($"Imported · {Path.GetFileName(path)}", graph.SourceText);
+
+            graph.UseLiveDataCommand.Execute(null);
+            Assert.False(graph.HasNotice);
         }
         finally
         {

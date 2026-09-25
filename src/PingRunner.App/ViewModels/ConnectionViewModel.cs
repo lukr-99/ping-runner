@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PingRunner.App.Desktop;
-using PingRunner.App.Formatting;
 using PingRunner.App.Shell;
+using PingRunner.Core.Formatting;
 using PingRunner.Core.Network;
 
 namespace PingRunner.App.ViewModels;

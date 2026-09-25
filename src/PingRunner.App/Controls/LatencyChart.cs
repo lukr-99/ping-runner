@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using PingRunner.App.Formatting;
+using PingRunner.Core.Formatting;
 using PingRunner.Core.Graphing;
 using PingRunner.Core.Pinging;
 

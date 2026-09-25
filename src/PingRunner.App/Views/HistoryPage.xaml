@@ -19,7 +19,7 @@
         </Style>
         <Style x:Key="IconAction" TargetType="ui:Button" BasedOn="{StaticResource PR.TonalButton}">
             <Setter Property="Margin" Value="4,0,0,0" />
-            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Padding" Value="7,4" />
         </Style>
         <Style x:Key="Head" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12" />
@@ -36,20 +36,35 @@
 
         <controls:PageHeader Grid.Row="0" Icon="History24" Title="History" Subtitle="{Binding Summary}">
             <controls:PageHeader.Actions>
-                <ui:Button Content="Refresh"
-                           Style="{StaticResource PR.TonalButton}"
-                           Icon="{ui:SymbolIcon ArrowClockwise24}"
-                           Command="{Binding RefreshCommand}" />
+                <StackPanel Orientation="Horizontal">
+                    <ui:Button Content="Import…"
+                               Style="{StaticResource PR.TonalButton}"
+                               Icon="{ui:SymbolIcon ArrowImport24}"
+                               Command="{Binding ImportCommand}"
+                               ToolTip="Keep pings from a CSV file or an Excel workbook as runs in the history" />
+                    <ui:Button Margin="6,0,0,0"
+                               Content="Refresh"
+                               Style="{StaticResource PR.TonalButton}"
+                               Icon="{ui:SymbolIcon ArrowClockwise24}"
+                               Command="{Binding RefreshCommand}" />
+                </StackPanel>
             </controls:PageHeader.Actions>
         </controls:PageHeader>
 
-        <ui:InfoBar Grid.Row="1"
-                    Margin="0,0,0,10"
-                    Title="History"
-                    Message="{Binding Problem}"
-                    Severity="Warning"
-                    IsClosable="False"
-                    IsOpen="{Binding HasProblem}" />
+        <StackPanel Grid.Row="1">
+            <ui:InfoBar Margin="0,0,0,10"
+                        Title="History"
+                        Message="{Binding Problem}"
+                        Severity="Warning"
+                        IsClosable="False"
+                        IsOpen="{Binding HasProblem}" />
+            <ui:InfoBar Margin="0,0,0,10"
+                        Title="Import"
+                        Message="{Binding Notice}"
+                        Severity="Success"
+                        IsClosable="True"
+                        IsOpen="{Binding HasNotice, Mode=TwoWay}" />
+        </StackPanel>
 
         <TabControl Grid.Row="2" Background="Transparent" BorderThickness="0">
             <TabItem>
@@ -63,9 +78,9 @@
                     <DockPanel Grid.IsSharedSizeScope="True">
                         <Grid DockPanel.Dock="Top" Margin="16,0,16,6">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition SharedSizeGroup="When" Width="190" />
-                                <ColumnDefinition SharedSizeGroup="Target" Width="150" />
-                                <ColumnDefinition SharedSizeGroup="Duration" Width="100" />
+                                <ColumnDefinition SharedSizeGroup="When" Width="176" />
+                                <ColumnDefinition SharedSizeGroup="Target" Width="132" />
+                                <ColumnDefinition SharedSizeGroup="Duration" Width="92" />
                                 <ColumnDefinition SharedSizeGroup="Pings" Width="70" />
                                 <ColumnDefinition SharedSizeGroup="Loss" Width="70" />
                                 <ColumnDefinition SharedSizeGroup="Average" Width="80" />
@@ -85,7 +100,7 @@
                             <TextBlock Grid.Column="8" Style="{StaticResource Head}" Text="MOS" />
                         </Grid>
                         <TextBlock DockPanel.Dock="Top" Margin="16,8,16,0" Style="{StaticResource PR.Hint}"
-                                   Text="No runs yet. Every run you start on the Monitor page is saved here as it goes."
+                                   Text="No runs yet. Every run you start on the Monitor page is saved here as it goes, and Import… adds pings from a file."
                                    Visibility="{Binding Runs.Count, Converter={StaticResource ZeroToVisible}}" />
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <ItemsControl ItemsSource="{Binding Runs}" Margin="0,0,4,0">
@@ -123,6 +138,9 @@
                                                 <StackPanel Grid.Column="9" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                                     <ui:Button Style="{StaticResource IconAction}" Icon="{ui:SymbolIcon DataLine24}" ToolTip="Open in the Graph"
                                                                Command="{Binding DataContext.OpenRunCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                               CommandParameter="{Binding}" />
+                                                    <ui:Button Style="{StaticResource IconAction}" Icon="{ui:SymbolIcon DocumentPdf24}" ToolTip="Make a report"
+                                                               Command="{Binding DataContext.ReportRunCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                                CommandParameter="{Binding}" />
                                                     <ui:Button Style="{StaticResource IconAction}" Icon="{ui:SymbolIcon ArrowExportLtr24}" ToolTip="Export as CSV"
                                                                Command="{Binding DataContext.ExportRunCommand, RelativeSource={RelativeSource AncestorType=Page}}"

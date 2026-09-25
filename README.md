@@ -8,11 +8,11 @@ runs a speed test that also measures how much a full line slows everything else 
 
 ## Status
 
-Version 2.1.0 is the current release. It adds the History page, which keeps every ping run and speed
-test on this computer, and a shortcut to your router's admin page. Version 2.0.0 replaced the 1.x window
-and pop-up graph with one window and its pages. Local builds report themselves as `2.1.0-dev`. Update
-from Settings: "Check for updates" opens the release page, and the new installer replaces the old
-version in place, keeping settings and history.
+Version 2.2.0 is the current release. It adds reports as PDF and Excel, and imports from spreadsheets
+and other tools into the History. Version 2.1.0 added the History page and a shortcut to your router's
+admin page. Local builds report themselves as `2.2.0-dev`. Update from Settings:
+"Check for updates" opens the release page, and the new installer replaces the old version in place,
+keeping settings and history.
 
 ## What it shows
 
@@ -33,10 +33,10 @@ figures update a few times a second:
 The page also draws the last 120 pings and lists the newest 200. The copy button puts a text summary of
 the session on the clipboard, ready for a support ticket.
 
-**Graph.** The whole session, or a CSV you import, narrowed to the last N pings or a time span. Scroll
-to zoom at the pointer, drag to pan, double-click to reset, and hover for the exact ping. The figures
-above the chart describe only what is on screen. Export the visible part or everything as CSV, or the
-chart and its figures as PNG.
+**Graph.** The whole session, a stored run, or a file you import, narrowed to the last N pings or a
+time span. Scroll to zoom at the pointer, drag to pan, double-click to reset, and hover for the exact
+ping. The figures above the chart describe only what is on screen. Export the visible part or
+everything as CSV, or the chart and its figures as PNG, or make a report of what it shows.
 
 ![The Graph page in dark mode, showing the last 300 pings with one lost ping marked](docs/assets/graph-dark.png)
 
@@ -59,9 +59,30 @@ up when the page opens and stays hidden until you show it.
 **History.** Every ping run, with every ping in it, and every speed test, kept until you delete them.
 A run is saved while it goes, every 50 pings or 5 seconds, so a crash loses at most a few seconds; a
 run left open that way is marked "Interrupted" the next time the app starts. Open a run in the Graph,
-export it as CSV, or delete it.
+make a report of it, export it as CSV, or delete it. Import adds pings from a file as stored runs, one
+per target, marked with the file's name.
 
 ![The History page listing four stored runs, one still running](docs/assets/history-light.png)
+
+**Reports.** Evidence of how the connection behaved, for a support ticket or anyone who was not there.
+Report on the live session, what the Graph shows, one stored run, or everything stored for a target
+between two dates; add a title and notes; choose whether speed tests, connection details, the public IP
+(off by default) and every ping go in. The page previews the figures and findings, then saves:
+
+- a **PDF** to hand over: key figures, findings in plain words, charts of latency over time (lost pings
+  and outages marked), loss per slice of time, how replies were spread and the speed tests, a table
+  over time, every outage, the speed tests, the connection and how it was all measured;
+- an **Excel workbook** to work with: the same summary and charts, then a sheet per table with real
+  numbers and dates, and a Pings sheet that imports straight back into Ping Runner.
+
+![The Reports page previewing a report on the live session](docs/assets/reports-light.png)
+
+![The first page of a PDF report: key figures, findings and the latency chart](docs/assets/report-pdf.png)
+
+**Import.** The Graph and the History read Ping Runner's CSV, the same file after a spreadsheet saved
+it again (semicolons or tabs, local dates, decimal commas), other tools' ping logs with a time column
+and a latency or result column, and Excel workbooks. Rows that cannot be read are left out and listed
+by line; a file with no pings in it is refused with the reason.
 
 **Settings.** Light, dark or Windows theme, four accent colors, how many pings the live session keeps
 (10,000 to 500,000), speed-test length and streams, backup, restore and clearing of the history, and an
@@ -107,8 +128,9 @@ check that CI runs, and how to regenerate the screenshots above.
 ## Architecture
 
 Four projects with dependencies pointing inward: `PingRunner.Core` (statistics, the ping loop, the
-speed test, formats; no I/O), `PingRunner.Infrastructure` (ICMP, HTTP, the adapter list, the settings
-file), `PingRunner.App` (WPF UI and the composition root) and `PingRunner.Cli`. See
+speed test, reports, file formats; no I/O), `PingRunner.Infrastructure` (ICMP, HTTP, the adapter list,
+the settings file, the history, PDF and Excel), `PingRunner.App` (WPF UI and the composition root) and
+`PingRunner.Cli`. See
 [ARCHITECTURE.md](ARCHITECTURE.md) for the seams, the data flow and the outside services the app talks
 to, and [CONTEXT.md](CONTEXT.md) for what each measurement means.
 
@@ -127,8 +149,8 @@ Uninstalling leaves the folder; deleting it resets the app.
 
 Back up the history from Settings: it writes a complete copy to a file you choose. Restore checks that
 the file is a readable Ping Runner history before it replaces anything and keeps the previous one as
-`history.before-restore.db`. A single run can also go out as CSV, in the format 1.x wrote, and CSV files
-open in the Graph.
+`history.before-restore.db`. A single run can also go out as CSV, in the format 1.x wrote, or as a
+report; CSV files and Excel workbooks open in the Graph or import into the History.
 
 ## Delivery
 
@@ -148,4 +170,5 @@ published release and offers to open its page; it never downloads or runs anythi
 ## License
 
 [PolyForm Noncommercial 1.0.0](LICENSE.md). Free for personal and other noncommercial use; selling it
-or using it commercially needs permission.
+or using it commercially needs permission. The libraries it ships with are listed in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md), which the installer puts beside the app.

@@ -59,6 +59,25 @@ public sealed class SqliteMigratorTests
     }
 
     [Fact]
+    public void Migrate_FromVersionOneWithRuns_KeepsThemAsRecorded()
+    {
+        using var folder = new TemporaryDirectory();
+        using var connection = Open(folder.File("history.db"));
+        var builtIn = SqliteMigrator.BuiltIn();
+        new SqliteMigrator([builtIn.Migrations[0]]).Migrate(connection);
+        Execute(connection, File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "History", "Fixtures", "before_0002_add_run_source.sql")));
+
+        Assert.Equal(1, builtIn.Migrate(connection));
+
+        Assert.Equal("2|recorded|0|5|1", Scalar(connection, """
+            SELECT COUNT(*) || '|' || MIN(source) || '|' || COUNT(source_name) || '|'
+                || (SELECT COUNT(*) FROM ping_attempts) || '|' || (SELECT COUNT(*) FROM speed_tests)
+            FROM ping_runs
+            """));
+        Assert.Throws<SqliteException>(() => Execute(connection, "UPDATE ping_runs SET source = 'guessed' WHERE id = 1"));
+    }
+
+    [Fact]
     public void Migrate_AppliedFileWasEdited_IsRefused()
     {
         using var folder = new TemporaryDirectory();
@@ -82,6 +101,13 @@ public sealed class SqliteMigratorTests
         using var command = connection.CreateCommand();
         command.CommandText = sql;
         command.ExecuteNonQuery();
+    }
+
+    private static string? Scalar(SqliteConnection connection, string sql)
+    {
+        using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        return Convert.ToString(command.ExecuteScalar(), System.Globalization.CultureInfo.InvariantCulture);
     }
 
     private static List<string> Tables(SqliteConnection connection)

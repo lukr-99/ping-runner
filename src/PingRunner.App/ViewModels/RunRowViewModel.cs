@@ -1,5 +1,5 @@
 using System.Globalization;
-using PingRunner.App.Formatting;
+using PingRunner.Core.Formatting;
 using PingRunner.Core.History;
 using PingRunner.Core.Statistics;
 
@@ -16,8 +16,8 @@ public sealed class RunRowViewModel(RunRecord run)
 
     public string Duration { get; } = run.Outcome == RunOutcome.Running || run.Duration is not { } span ? "–" : Units.Span(span);
 
-    /// <summary>How the run ended, or "Running now" while it goes on.</summary>
-    public string Status { get; } = run.Outcome switch
+    /// <summary>How the run ended, "Running now" while it goes on, or the file an imported run came from.</summary>
+    public string Status { get; } = run.Source == RunSource.Imported ? $"Imported · {run.SourceName}" : run.Outcome switch
     {
         RunOutcome.Completed => "Completed",
         RunOutcome.Stopped => "Stopped",

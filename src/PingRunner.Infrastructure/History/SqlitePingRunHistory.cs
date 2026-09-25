@@ -37,34 +37,7 @@ public sealed class SqlitePingRunHistory(SqliteHistoryDatabase database) : IPing
             connection =>
             {
                 using var transaction = connection.BeginTransaction();
-                using var command = connection.CreateCommand();
-                command.Transaction = transaction;
-
-                // A retried batch writes the same rows again, so repeating one is harmless.
-                command.CommandText = """
-                    INSERT OR IGNORE INTO ping_attempts (run_id, sequence, timestamp_ms, offset_min, is_success, roundtrip_ms, details)
-                    VALUES ($run, $sequence, $timestamp, $offset, $success, $roundtrip, $details)
-                    """;
-                var run = command.Parameters.Add("$run", SqliteType.Integer);
-                var sequence = command.Parameters.Add("$sequence", SqliteType.Integer);
-                var timestamp = command.Parameters.Add("$timestamp", SqliteType.Integer);
-                var offset = command.Parameters.Add("$offset", SqliteType.Integer);
-                var success = command.Parameters.Add("$success", SqliteType.Integer);
-                var roundtrip = command.Parameters.Add("$roundtrip", SqliteType.Integer);
-                var details = command.Parameters.Add("$details", SqliteType.Text);
-                run.Value = runId;
-
-                for (var index = 0; index < attempts.Count; index++)
-                {
-                    var attempt = attempts[index];
-                    sequence.Value = firstSequence + index;
-                    timestamp.Value = attempt.Timestamp.ToUnixTimeMilliseconds();
-                    offset.Value = (int)attempt.Timestamp.Offset.TotalMinutes;
-                    success.Value = attempt.IsSuccess ? 1 : 0;
-                    roundtrip.Value = attempt.RoundtripMilliseconds is { } value ? value : DBNull.Value;
-                    details.Value = attempt.Details;
-                    command.ExecuteNonQuery();
-                }
+                InsertAttempts(connection, transaction, runId, firstSequence, attempts);
 
                 // Live counts, so a run still going shows how far it got.
                 using var counts = connection.CreateCommand();
@@ -90,30 +63,47 @@ public sealed class SqlitePingRunHistory(SqliteHistoryDatabase database) : IPing
         return database.RunAsync(
             connection =>
             {
-                using var command = connection.CreateCommand();
-                command.CommandText = """
-                    UPDATE ping_runs SET
-                        outcome = $outcome, ended_at_ms = $ended, sent = $sent, received = $received,
-                        mean_ms = $mean, median_ms = $median, p95_ms = $p95, min_ms = $min, max_ms = $max,
-                        jitter_ms = $jitter, outages = $outages, longest_outage_ms = $longest, mos = $mos
-                    WHERE id = $id
-                    """;
-                command.Parameters.AddWithValue("$id", runId);
-                command.Parameters.AddWithValue("$outcome", OutcomeText(outcome));
-                command.Parameters.AddWithValue("$ended", Nullable(endedAt?.ToUnixTimeMilliseconds()));
-                command.Parameters.AddWithValue("$sent", summary.Sent);
-                command.Parameters.AddWithValue("$received", summary.Received);
-                command.Parameters.AddWithValue("$mean", Nullable(summary.MeanMilliseconds));
-                command.Parameters.AddWithValue("$median", Nullable(summary.MedianMilliseconds));
-                command.Parameters.AddWithValue("$p95", Nullable(summary.P95Milliseconds));
-                command.Parameters.AddWithValue("$min", Nullable(summary.MinimumMilliseconds));
-                command.Parameters.AddWithValue("$max", Nullable(summary.MaximumMilliseconds));
-                command.Parameters.AddWithValue("$jitter", Nullable(summary.JitterMilliseconds));
-                command.Parameters.AddWithValue("$outages", summary.Outages);
-                command.Parameters.AddWithValue("$longest", Nullable(summary.LongestOutage is { } longest ? (long?)longest.TotalMilliseconds : null));
-                command.Parameters.AddWithValue("$mos", Nullable(summary.MeanOpinionScore));
-                command.ExecuteNonQuery();
+                WriteSummary(connection, null, runId, outcome, endedAt, summary);
                 return true;
+            },
+            cancellationToken);
+    }
+
+    public Task<long> ImportRunAsync(string sourceName, IReadOnlyList<PingAttempt> attempts, RunSummary summary, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(sourceName);
+        ArgumentNullException.ThrowIfNull(attempts);
+        ArgumentNullException.ThrowIfNull(summary);
+        if (attempts.Count == 0)
+        {
+            throw new ArgumentException("An imported run needs at least one ping.", nameof(attempts));
+        }
+
+        var interval = PingSpacing.Typical(attempts) is { } typical && typical >= TimeSpan.FromMilliseconds(1) ? typical : TimeSpan.FromSeconds(1);
+        return database.RunAsync(
+            connection =>
+            {
+                using var transaction = connection.BeginTransaction();
+                using var command = connection.CreateCommand();
+                command.Transaction = transaction;
+
+                // The interval is also the timeout: a file does not say how long each ping waited.
+                command.CommandText = """
+                    INSERT INTO ping_runs (target_host, started_at_ms, started_offset_min, interval_ms, timeout_ms, outcome, source, source_name)
+                    VALUES ($host, $started, $offset, $interval, $interval, 'completed', 'imported', $name);
+                    SELECT last_insert_rowid();
+                    """;
+                command.Parameters.AddWithValue("$host", attempts[0].TargetHost);
+                command.Parameters.AddWithValue("$started", attempts[0].Timestamp.ToUnixTimeMilliseconds());
+                command.Parameters.AddWithValue("$offset", (int)attempts[0].Timestamp.Offset.TotalMinutes);
+                command.Parameters.AddWithValue("$interval", (long)interval.TotalMilliseconds);
+                command.Parameters.AddWithValue("$name", sourceName);
+                var runId = (long)command.ExecuteScalar()!;
+
+                InsertAttempts(connection, transaction, runId, 0, attempts);
+                WriteSummary(connection, transaction, runId, RunOutcome.Completed, attempts[^1].Timestamp, summary);
+                transaction.Commit();
+                return runId;
             },
             cancellationToken);
     }
@@ -124,7 +114,8 @@ public sealed class SqlitePingRunHistory(SqliteHistoryDatabase database) : IPing
             using var command = connection.CreateCommand();
             command.CommandText = """
                 SELECT id, target_host, started_at_ms, started_offset_min, ended_at_ms, interval_ms, timeout_ms, planned_duration_ms,
-                       outcome, sent, received, mean_ms, median_ms, p95_ms, min_ms, max_ms, jitter_ms, outages, longest_outage_ms, mos
+                       outcome, sent, received, mean_ms, median_ms, p95_ms, min_ms, max_ms, jitter_ms, outages, longest_outage_ms, mos,
+                       source, source_name
                 FROM ping_runs
                 ORDER BY started_at_ms DESC, id DESC
                 """;
@@ -153,7 +144,11 @@ public sealed class SqlitePingRunHistory(SqliteHistoryDatabase database) : IPing
                         Double(reader, 16),
                         reader.GetInt32(17),
                         reader.IsDBNull(18) ? null : TimeSpan.FromMilliseconds(reader.GetInt64(18)),
-                        Double(reader, 19))));
+                        Double(reader, 19)))
+                {
+                    Source = reader.GetString(20) == "imported" ? RunSource.Imported : RunSource.Recorded,
+                    SourceName = reader.IsDBNull(21) ? null : reader.GetString(21),
+                });
             }
 
             return runs;
@@ -197,6 +192,72 @@ public sealed class SqlitePingRunHistory(SqliteHistoryDatabase database) : IPing
             return true;
         },
         cancellationToken);
+
+    private static void InsertAttempts(SqliteConnection connection, SqliteTransaction transaction, long runId, int firstSequence, IReadOnlyList<PingAttempt> attempts)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+
+        // A retried batch writes the same rows again, so repeating one is harmless.
+        command.CommandText = """
+            INSERT OR IGNORE INTO ping_attempts (run_id, sequence, timestamp_ms, offset_min, is_success, roundtrip_ms, details)
+            VALUES ($run, $sequence, $timestamp, $offset, $success, $roundtrip, $details)
+            """;
+        var run = command.Parameters.Add("$run", SqliteType.Integer);
+        var sequence = command.Parameters.Add("$sequence", SqliteType.Integer);
+        var timestamp = command.Parameters.Add("$timestamp", SqliteType.Integer);
+        var offset = command.Parameters.Add("$offset", SqliteType.Integer);
+        var success = command.Parameters.Add("$success", SqliteType.Integer);
+        var roundtrip = command.Parameters.Add("$roundtrip", SqliteType.Integer);
+        var details = command.Parameters.Add("$details", SqliteType.Text);
+        run.Value = runId;
+
+        for (var index = 0; index < attempts.Count; index++)
+        {
+            var attempt = attempts[index];
+            sequence.Value = firstSequence + index;
+            timestamp.Value = attempt.Timestamp.ToUnixTimeMilliseconds();
+            offset.Value = (int)attempt.Timestamp.Offset.TotalMinutes;
+            success.Value = attempt.IsSuccess ? 1 : 0;
+            roundtrip.Value = attempt.RoundtripMilliseconds is { } value ? value : DBNull.Value;
+            details.Value = attempt.Details;
+            command.ExecuteNonQuery();
+        }
+    }
+
+    private static void WriteSummary(
+        SqliteConnection connection,
+        SqliteTransaction? transaction,
+        long runId,
+        RunOutcome outcome,
+        DateTimeOffset? endedAt,
+        RunSummary summary)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = """
+            UPDATE ping_runs SET
+                outcome = $outcome, ended_at_ms = $ended, sent = $sent, received = $received,
+                mean_ms = $mean, median_ms = $median, p95_ms = $p95, min_ms = $min, max_ms = $max,
+                jitter_ms = $jitter, outages = $outages, longest_outage_ms = $longest, mos = $mos
+            WHERE id = $id
+            """;
+        command.Parameters.AddWithValue("$id", runId);
+        command.Parameters.AddWithValue("$outcome", OutcomeText(outcome));
+        command.Parameters.AddWithValue("$ended", Nullable(endedAt?.ToUnixTimeMilliseconds()));
+        command.Parameters.AddWithValue("$sent", summary.Sent);
+        command.Parameters.AddWithValue("$received", summary.Received);
+        command.Parameters.AddWithValue("$mean", Nullable(summary.MeanMilliseconds));
+        command.Parameters.AddWithValue("$median", Nullable(summary.MedianMilliseconds));
+        command.Parameters.AddWithValue("$p95", Nullable(summary.P95Milliseconds));
+        command.Parameters.AddWithValue("$min", Nullable(summary.MinimumMilliseconds));
+        command.Parameters.AddWithValue("$max", Nullable(summary.MaximumMilliseconds));
+        command.Parameters.AddWithValue("$jitter", Nullable(summary.JitterMilliseconds));
+        command.Parameters.AddWithValue("$outages", summary.Outages);
+        command.Parameters.AddWithValue("$longest", Nullable(summary.LongestOutage is { } longest ? (long?)longest.TotalMilliseconds : null));
+        command.Parameters.AddWithValue("$mos", Nullable(summary.MeanOpinionScore));
+        command.ExecuteNonQuery();
+    }
 
     private static string OutcomeText(RunOutcome outcome) => outcome switch
     {
