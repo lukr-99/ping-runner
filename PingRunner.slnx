@@ -4,4 +4,7 @@
     <Project Path="src/PingRunner.Cli/PingRunner.Cli.csproj" />
     <Project Path="src/PingRunner.Core/PingRunner.Core.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PingRunner.Core.Tests/PingRunner.Core.Tests.csproj" />
+  </Folder>
 </Solution>

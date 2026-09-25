@@ -5,6 +5,8 @@ using PingRunner.Core.Pinging.Models;
 
 namespace PingRunner.Core.Pinging.Services;
 
+using PingRunSettings = PingRunner.Core.Pinging.Models.PingRunSettings;
+
 public sealed class PingService
 {
     public async IAsyncEnumerable<PingAttemptResult> RunAsync(
