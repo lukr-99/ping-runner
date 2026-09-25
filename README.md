@@ -8,9 +8,11 @@ runs a speed test that also measures how much a full line slows everything else 
 
 ## Status
 
-Version 2.0.0 is the current release and the first one published on GitHub. It replaces the 1.x window
-and pop-up graph with one window and five pages. Local builds report themselves as `2.0.0-dev`.
-Version 1.1.0 was installed with the old `install.ps1`; the 2.0 installer removes that copy.
+Version 2.1.0 is the current release. It adds the History page, which keeps every ping run and speed
+test on this computer, and a shortcut to your router's admin page. Version 2.0.0 replaced the 1.x window
+and pop-up graph with one window and its pages. Local builds report themselves as `2.1.0-dev`. Update
+from Settings: "Check for updates" opens the release page, and the new installer replaces the old
+version in place, keeping settings and history.
 
 ## What it shows
 
@@ -47,14 +49,23 @@ are in Settings. A test on a fast line moves several hundred megabytes.
 ![A finished speed test: 443 Mbps down, 38.7 Mbps up, bufferbloat A+](docs/assets/speedtest-light.png)
 
 **Connection.** The adapter that carries the default route: type, link speed, local addresses, gateway
-and DNS servers, each with a button that fills in the Monitor. Ping the gateway first. Loss there
+and DNS servers, each with a button that fills in the Monitor. "Open router" opens the gateway's admin
+page (`http://<gateway>/`) in your browser. Ping the gateway first. Loss there
 points at Wi-Fi or cabling; loss only to public hosts points past the router. The public IP is looked
 up when the page opens and stays hidden until you show it.
 
 ![The Connection page in dark mode](docs/assets/connection-dark.png)
 
+**History.** Every ping run, with every ping in it, and every speed test, kept until you delete them.
+A run is saved while it goes, every 50 pings or 5 seconds, so a crash loses at most a few seconds; a
+run left open that way is marked "Interrupted" the next time the app starts. Open a run in the Graph,
+export it as CSV, or delete it.
+
+![The History page listing four stored runs, one still running](docs/assets/history-light.png)
+
 **Settings.** Light, dark or Windows theme, four accent colors, how many pings the live session keeps
-(10,000 to 500,000), speed-test length and streams, and an update check.
+(10,000 to 500,000), speed-test length and streams, backup, restore and clearing of the history, and an
+update check.
 
 There is also a console version: `pingrunner` asks for a host and prints each ping and a summary, and
 `pingrunner speed [seconds] [streams]` runs the speed test.
@@ -103,13 +114,21 @@ to, and [CONTEXT.md](CONTEXT.md) for what each measurement means.
 
 ## Data safety
 
-Ping Runner stores one file, `settings.json`, in `%LOCALAPPDATA%\PingRunner` (`PingRunner Dev` for
-`-dev` builds). It holds appearance, the last ping form and recent targets, with a `Version` field for
-later migrations. A settings file that cannot be read is kept as `settings.unreadable.json` and the app
-starts on defaults. Deleting the folder resets the app; uninstalling leaves it.
+Ping Runner keeps two files in `%LOCALAPPDATA%\PingRunner` (`PingRunner Dev` for `-dev` builds).
+Uninstalling leaves the folder; deleting it resets the app.
 
-Ping sessions live in memory only. To keep one, export it from the Graph page as CSV; importing the
-file brings it back. The CSV format is the one 1.x wrote, so old exports still open.
+- `settings.json` holds appearance, the last ping form and recent targets, with a `Version` field for
+  later migrations. A settings file that cannot be read is kept as `settings.unreadable.json` and the
+  app starts on defaults.
+- `history.db` (SQLite) holds every ping run with its pings and every speed test. Its schema changes
+  only through numbered migration files, and a history written by a newer Ping Runner is left alone
+  rather than opened. A file SQLite cannot read is set aside as `history.unreadable-<time>.db` and a
+  new history starts.
+
+Back up the history from Settings: it writes a complete copy to a file you choose. Restore checks that
+the file is a readable Ping Runner history before it replaces anything and keeps the previous one as
+`history.before-restore.db`. A single run can also go out as CSV, in the format 1.x wrote, and CSV files
+open in the Graph.
 
 ## Delivery
 

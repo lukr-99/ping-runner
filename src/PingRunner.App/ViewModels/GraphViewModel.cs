@@ -12,7 +12,7 @@ using PingRunner.Core.Statistics;
 namespace PingRunner.App.ViewModels;
 
 /// <summary>
-/// The Graph page: the live session or an imported CSV, narrowed to a range, then zoomed and panned
+/// The Graph page: the live session, a stored run or an imported CSV, narrowed to a range, then zoomed and panned
 /// on the chart. The statistics strip always describes exactly what is on screen, and exports can
 /// take either the visible part or the whole source.
 /// </summary>
@@ -23,7 +23,7 @@ public sealed partial class GraphViewModel : ObservableObject
     private readonly PingSession session;
     private readonly IDesktopServices desktop;
     private IReadOnlyList<PingAttempt>? imported;
-    private string? importedName;
+    private string? importedLabel;
     private bool dirty = true;
 
     [ObservableProperty]
@@ -107,21 +107,36 @@ public sealed partial class GraphViewModel : ObservableObject
     {
         try
         {
+            IReadOnlyList<PingAttempt> attempts;
             var stream = File.OpenRead(path);
             await using (stream.ConfigureAwait(true))
             {
-                imported = await PingAttemptCsv.ImportAsync(stream).ConfigureAwait(true);
+                attempts = await PingAttemptCsv.ImportAsync(stream).ConfigureAwait(true);
             }
 
-            importedName = Path.GetFileName(path);
-            IsImported = true;
-            Zoom = GraphZoom.None;
-            SelectedRange = GraphRange.Everything;
-            Rebuild();
+            ShowAttempts(attempts, $"Imported · {Path.GetFileName(path)}");
         }
         catch (Exception exception) when (exception is IOException or InvalidDataException or UnauthorizedAccessException)
         {
             desktop.ShowError("Import failed", exception.Message);
+        }
+    }
+
+    /// <summary>Shows attempts from somewhere other than the live session (a file, the history) until "Back to live data".</summary>
+    public void ShowAttempts(IReadOnlyList<PingAttempt> attempts, string label)
+    {
+        ArgumentNullException.ThrowIfNull(attempts);
+        imported = attempts;
+        importedLabel = label;
+        IsImported = true;
+        Zoom = GraphZoom.None;
+        if (SelectedRange == GraphRange.Everything)
+        {
+            Rebuild();
+        }
+        else
+        {
+            SelectedRange = GraphRange.Everything;
         }
     }
 
@@ -152,7 +167,7 @@ public sealed partial class GraphViewModel : ObservableObject
     private void UseLiveData()
     {
         imported = null;
-        importedName = null;
+        importedLabel = null;
         IsImported = false;
         Zoom = GraphZoom.None;
         Rebuild();
@@ -169,7 +184,7 @@ public sealed partial class GraphViewModel : ObservableObject
         RangedAttempts = SelectedRange.Apply(source);
         SourceText = imported is null
             ? session.Settings is { } run ? $"Live session · {run.TargetHost}" : "Live session"
-            : $"Imported · {importedName}";
+            : importedLabel ?? "Imported";
         UpdateVisibleStatistics();
     }
 
@@ -179,7 +194,7 @@ public sealed partial class GraphViewModel : ObservableObject
         Stats = StatisticsDisplay.From(PingStatistics.From(visible));
         var total = imported?.Count ?? session.Attempts.Count;
         ViewText = visible.Count == 0
-            ? imported is null ? "No pings yet. Start a run on the Monitor page, or import a CSV." : "The file has no pings."
+            ? imported is null ? "No pings yet. Start a run on the Monitor page, open one from History, or import a CSV." : "There are no pings to show."
             : $"Showing {Units.Count(visible.Count)} of {Units.Count(total)} pings · {visible[0].Timestamp.ToLocalTime():HH:mm:ss} – {visible[^1].Timestamp.ToLocalTime():HH:mm:ss}";
     }
 

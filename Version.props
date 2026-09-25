@@ -4,6 +4,6 @@
     it from here. Bump it in the release commit together with CHANGELOG.md (docs/releasing.md).
   -->
   <PropertyGroup>
-    <PingRunnerVersion>2.0.0</PingRunnerVersion>
+    <PingRunnerVersion>2.1.0</PingRunnerVersion>
   </PropertyGroup>
 </Project>

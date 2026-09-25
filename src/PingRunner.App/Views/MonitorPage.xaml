@@ -16,7 +16,7 @@
         </Grid.RowDefinitions>
 
         <!-- Title and live status. -->
-        <controls:PageHeader Grid.Row="0" Icon="Pulse24" Title="Monitor" Subtitle="Latency, jitter, packet loss and outages, live.">
+        <controls:PageHeader Grid.Row="0" Icon="Pulse24" Title="Monitor" Subtitle="Latency, jitter, packet loss and outages, live. Every run is kept in History.">
             <controls:PageHeader.Actions>
                 <Border Style="{StaticResource PR.StatusPill}">
                     <StackPanel Orientation="Horizontal">

@@ -18,16 +18,18 @@ namespace PingRunner.App.Tests.Ui;
 [Collection(WpfCollection.Name)]
 public sealed class PageRenderTests
 {
-    private static readonly AppPage[] Pages = [AppPage.Monitor, AppPage.Graph, AppPage.SpeedTest, AppPage.Connection, AppPage.Settings];
+    private static readonly AppPage[] Pages = [AppPage.Monitor, AppPage.Graph, AppPage.SpeedTest, AppPage.Connection, AppPage.History, AppPage.Settings];
 
     [Fact]
     public Task EveryPage_BothThemes_RendersWithoutBindingErrors() => WpfHost.RunAsync(async () =>
     {
         using var errors = new BindingErrorRecorder();
         using var app = TestApp.Create();
+        await app.SeedHistoryAsync();
         await app.PingAsync(600);
         await app.RunSpeedTestAsync();
         await app.Graph.Connection.EnsureLoadedAsync();
+        await app.Graph.History.EnsureLoadedAsync();
 
         var window = new MainWindow(app.Graph)
         {

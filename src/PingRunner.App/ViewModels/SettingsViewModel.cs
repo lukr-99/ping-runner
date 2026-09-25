@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.IO;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -5,6 +7,7 @@ using PingRunner.App.Composition;
 using PingRunner.App.Desktop;
 using PingRunner.App.Formatting;
 using PingRunner.App.Theming;
+using PingRunner.Core.History;
 using PingRunner.Core.Sessions;
 using PingRunner.Core.Settings;
 using PingRunner.Core.Updates;
@@ -13,17 +16,21 @@ namespace PingRunner.App.ViewModels;
 
 /// <summary>
 /// The Settings page: theme and accent (applied at once), how much of a session to keep, speed-test
-/// length and streams, the update check and what this build is.
+/// length and streams, the history's backup, restore and clearing, the update check and what this
+/// build is.
 /// </summary>
 public sealed partial class SettingsViewModel : ObservableObject
 {
     public const string RepositoryUrl = "https://github.com/lukr-99/ping-runner";
+    private const string HistoryFilter = "Ping Runner history (*.db)|*.db|All files (*.*)|*.*";
 
     private readonly SettingsState settings;
     private readonly ThemeApplier theme;
     private readonly PingSession session;
     private readonly UpdateCheck updates;
     private readonly IDesktopServices desktop;
+    private readonly IHistoryMaintenance history;
+    private readonly HistoryChanges changes;
     private Uri? releasePage;
 
     [ObservableProperty]
@@ -51,6 +58,12 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool isChecking;
 
+    [ObservableProperty]
+    private string historyText = "Loading…";
+
+    [ObservableProperty]
+    private string? historyStatus;
+
     public SettingsViewModel(
         SettingsState settings,
         ThemeApplier theme,
@@ -58,8 +71,13 @@ public sealed partial class SettingsViewModel : ObservableObject
         UpdateCheck updates,
         BuildInfo build,
         string dataFolder,
-        IDesktopServices desktop)
+        IDesktopServices desktop,
+        IHistoryMaintenance history,
+        HistoryChanges changes)
     {
+        this.history = history;
+        this.changes = changes;
+        changes.Changed += async (_, _) => await RefreshHistoryAsync().ConfigureAwait(true);
         this.settings = settings;
         this.theme = theme;
         this.session = session;
@@ -103,6 +121,25 @@ public sealed partial class SettingsViewModel : ObservableObject
     public string BuildKind { get; }
 
     public string DataFolder { get; }
+
+    public string HistoryLocation => history.Location;
+
+    public string? HistoryProblem => history.Problem;
+
+    public bool HasHistoryProblem => history.Problem is not null;
+
+    public async Task RefreshHistoryAsync()
+    {
+        try
+        {
+            var info = await history.GetInfoAsync(CancellationToken.None).ConfigureAwait(true);
+            HistoryText = $"{Units.CountOf(info.Runs, "ping run", "ping runs")} ({Units.CountOf(info.Attempts, "ping", "pings")}) and {Units.CountOf(info.SpeedTests, "speed test", "speed tests")}, {Units.Bytes(info.SizeBytes)} on disk.";
+        }
+        catch (HistoryException exception)
+        {
+            HistoryText = exception.Message;
+        }
+    }
 
     partial void OnSelectedThemeChanged(ChoiceViewModel<ThemeMode> value) => ApplyAppearance();
 
@@ -160,6 +197,69 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [RelayCommand]
     private void OpenDataFolder() => desktop.Open(DataFolder);
+
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private async Task BackupHistoryAsync()
+    {
+        var name = $"PingRunner-history-{DateTime.Now.ToString("yyyyMMdd-HHmm", CultureInfo.InvariantCulture)}.db";
+        if (desktop.PickFileToSave("Back up history", HistoryFilter, name) is not { } path)
+        {
+            return;
+        }
+
+        try
+        {
+            await history.BackupAsync(path, CancellationToken.None).ConfigureAwait(true);
+            HistoryStatus = $"Backed up to {path}.";
+        }
+        catch (HistoryException exception)
+        {
+            desktop.ShowError("Backup failed", exception.Message);
+        }
+    }
+
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private async Task RestoreHistoryAsync()
+    {
+        if (desktop.PickFileToOpen("Restore history", HistoryFilter) is not { } path
+            || !desktop.Confirm(
+                "Replace your history?",
+                $"Every ping run and speed test now in Ping Runner will be replaced by the ones in {Path.GetFileName(path)}. The current history is kept as history.before-restore.db in the settings folder."))
+        {
+            return;
+        }
+
+        try
+        {
+            var restored = await history.RestoreAsync(path, CancellationToken.None).ConfigureAwait(true);
+            HistoryStatus = $"Restored {Units.CountOf(restored.Runs, "ping run", "ping runs")} and {Units.CountOf(restored.SpeedTests, "speed test", "speed tests")} from {Path.GetFileName(path)}.";
+            changes.Raise();
+        }
+        catch (HistoryException exception)
+        {
+            desktop.ShowError("Restore failed", $"{exception.Message} Your history was not changed.");
+        }
+    }
+
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private async Task ClearHistoryAsync()
+    {
+        if (!desktop.Confirm("Delete all history?", "Every stored ping run and speed test will be deleted for good. Back up first if you might want them."))
+        {
+            return;
+        }
+
+        try
+        {
+            await history.ClearAsync(CancellationToken.None).ConfigureAwait(true);
+            HistoryStatus = "History cleared.";
+            changes.Raise();
+        }
+        catch (HistoryException exception)
+        {
+            desktop.ShowError("Could not clear the history", exception.Message);
+        }
+    }
 
     [RelayCommand]
     private void OpenRepository() => desktop.Open(RepositoryUrl);

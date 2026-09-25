@@ -6,6 +6,23 @@ release's number; the section moves from `[Unreleased]` to that number in the re
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-25
+
+### Added
+
+- History: every ping run, with every ping, and every speed test is kept on this computer until you
+  delete it. A run is saved while it goes, so a crash loses at most a few seconds, and a run a crash
+  left open is marked "Interrupted" at the next start. The History page lists runs and speed tests
+  with their figures; a run opens in the Graph, exports as CSV or is deleted.
+- Back up, restore and clear the history from Settings. A restore checks the file first and keeps
+  the previous history as `history.before-restore.db`.
+- "Open router" on the Connection page opens the gateway's admin page in the browser.
+
+### Changed
+
+- The Speed test page lists the last 20 stored tests and shows the latest one when the app starts,
+  instead of only this session's tests.
+
 ## [2.0.0] - 2026-09-25
 
 ### Added

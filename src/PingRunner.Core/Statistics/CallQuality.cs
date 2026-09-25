@@ -9,7 +9,10 @@ namespace PingRunner.Core.Statistics;
 /// </summary>
 public sealed record CallQuality(double RFactor, double MeanOpinionScore)
 {
-    public CallQualityRating Rating => MeanOpinionScore switch
+    public CallQualityRating Rating => RatingOf(MeanOpinionScore);
+
+    /// <summary>The band a score falls in: 4.3 and up excellent, 4.0 good, 3.6 fair, 3.1 poor, below that bad.</summary>
+    public static CallQualityRating RatingOf(double meanOpinionScore) => meanOpinionScore switch
     {
         >= 4.3 => CallQualityRating.Excellent,
         >= 4.0 => CallQualityRating.Good,

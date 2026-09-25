@@ -4,6 +4,7 @@ using PingRunner.App.Desktop;
 using PingRunner.App.Shell;
 using PingRunner.App.Theming;
 using PingRunner.App.ViewModels;
+using PingRunner.Core.History;
 using PingRunner.Core.Pinging;
 using PingRunner.Core.Sessions;
 using PingRunner.Core.SpeedTest;
@@ -36,12 +37,23 @@ public sealed class AppGraph : IDisposable
 
         var time = adapters.Time;
         Session = new PingSession(new PingLoop(adapters.Pinger, time), time) { Capacity = Settings.Current.MaximumStoredAttempts };
+        HistoryChanges = new HistoryChanges();
+        Recorder = new RunRecorder(Session, adapters.PingRuns, time);
 
         Monitor = new MonitorViewModel(Session, Settings, time, desktop, build.Version.ToString());
         Graph = new GraphViewModel(Session, desktop);
-        SpeedTest = new SpeedTestViewModel(new SpeedTestRunner(adapters.SpeedEndpoint, adapters.Pinger, time), Settings, adapters.SpeedEndpoint.Name);
+        SpeedTest = new SpeedTestViewModel(
+            new SpeedTestRunner(adapters.SpeedEndpoint, adapters.Pinger, time), Settings, adapters.SpeedEndpoint.Name, adapters.SpeedTests, HistoryChanges);
+        History = new HistoryViewModel(adapters.PingRuns, adapters.SpeedTests, adapters.History, Graph, Navigation, desktop, HistoryChanges);
         Connection = new ConnectionViewModel(adapters.Connections, adapters.PublicIp, Monitor, Navigation, desktop);
-        SettingsPage = new SettingsViewModel(Settings, Theme, Session, new UpdateCheck(adapters.Releases, build.Version), build, adapters.DataFolder, desktop);
+        SettingsPage = new SettingsViewModel(
+            Settings, Theme, Session, new UpdateCheck(adapters.Releases, build.Version), build, adapters.DataFolder, desktop, adapters.History, HistoryChanges);
+
+        // Every run lands in the history; runs a crash left open are closed first.
+        Recorder.RunSaved += (_, _) => HistoryChanges.Raise();
+        Recorder.Failed += (_, exception) => History.ReportProblem($"A ping run could not be saved to the history: {exception.Message}");
+        Recorder.RecoverInterruptedRuns();
+        _ = SpeedTest.LoadAsync();
 
         refresh = new DispatcherTimer(DispatcherPriority.Background) { Interval = RefreshInterval };
         refresh.Tick += (_, _) => RefreshPages();
@@ -59,6 +71,12 @@ public sealed class AppGraph : IDisposable
     public ShellNavigation Navigation { get; }
 
     public PingSession Session { get; }
+
+    public RunRecorder Recorder { get; }
+
+    public HistoryChanges HistoryChanges { get; }
+
+    public HistoryViewModel History { get; }
 
     public MonitorViewModel Monitor { get; }
 
@@ -80,6 +98,7 @@ public sealed class AppGraph : IDisposable
     public void Dispose()
     {
         refresh.Stop();
+        Recorder.Close(TimeSpan.FromSeconds(3));
         Session.Stop();
         Theme.Dispose();
         adapters.Dispose();

@@ -13,4 +13,13 @@
     <ProjectReference Include="..\PingRunner.Core\PingRunner.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Immutable history migrations (CodePrint data lifecycle); SqliteMigrator reads them by this prefix. -->
+    <EmbeddedResource Include="History\Migrations\*.sql" LogicalName="PingRunner.History.Migrations.%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>

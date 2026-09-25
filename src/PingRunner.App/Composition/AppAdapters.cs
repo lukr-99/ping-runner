@@ -1,10 +1,12 @@
 using System.Net;
 using System.Net.Http;
+using PingRunner.Core.History;
 using PingRunner.Core.Network;
 using PingRunner.Core.Pinging;
 using PingRunner.Core.Settings;
 using PingRunner.Core.Throughput;
 using PingRunner.Core.Updates;
+using PingRunner.Infrastructure.History;
 using PingRunner.Infrastructure.Network;
 using PingRunner.Infrastructure.Pinging;
 using PingRunner.Infrastructure.Settings;
@@ -31,6 +33,9 @@ public sealed class AppAdapters : IDisposable
         IPublicIpSource publicIp,
         IReleaseSource releases,
         ISettingsStore settingsStore,
+        IPingRunHistory pingRuns,
+        ISpeedTestHistory speedTests,
+        IHistoryMaintenance history,
         string dataFolder,
         params IDisposable[] owned)
     {
@@ -41,6 +46,9 @@ public sealed class AppAdapters : IDisposable
         PublicIp = publicIp;
         Releases = releases;
         SettingsStore = settingsStore;
+        PingRuns = pingRuns;
+        SpeedTests = speedTests;
+        History = history;
         DataFolder = dataFolder;
         this.owned = owned;
     }
@@ -59,6 +67,12 @@ public sealed class AppAdapters : IDisposable
 
     public ISettingsStore SettingsStore { get; }
 
+    public IPingRunHistory PingRuns { get; }
+
+    public ISpeedTestHistory SpeedTests { get; }
+
+    public IHistoryMaintenance History { get; }
+
     public string DataFolder { get; }
 
     /// <summary>The real adapters, with settings in this build's own data folder.</summary>
@@ -75,6 +89,22 @@ public sealed class AppAdapters : IDisposable
         var speed = new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) }) { Timeout = Timeout.InfiniteTimeSpan };
         speed.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
 
+        // A history written by a newer Ping Runner is left alone; the app runs without one and says why.
+        SqliteHistoryDatabase? database = null;
+        IPingRunHistory pingRuns;
+        ISpeedTestHistory speedTests;
+        IHistoryMaintenance history;
+        try
+        {
+            database = SqliteHistoryDatabase.Open(paths.History);
+            (pingRuns, speedTests, history) = (new SqlitePingRunHistory(database), new SqliteSpeedTestHistory(database), database);
+        }
+        catch (HistoryException exception)
+        {
+            var unavailable = new UnavailableHistory(paths.History, exception.Message);
+            (pingRuns, speedTests, history) = (unavailable, unavailable, unavailable);
+        }
+
         return new AppAdapters(
             new IcmpPingSender(),
             TimeProvider.System,
@@ -83,9 +113,11 @@ public sealed class AppAdapters : IDisposable
             new PublicIpService(web),
             new GitHubReleaseSource(web, "lukr-99", "ping-runner", userAgent),
             new JsonSettingsStore(paths.Settings),
+            pingRuns,
+            speedTests,
+            history,
             paths.Root,
-            web,
-            speed);
+            [web, speed, .. database is null ? Array.Empty<IDisposable>() : [database]]);
     }
 
     public void Dispose()

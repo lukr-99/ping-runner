@@ -14,8 +14,18 @@ Pinging one target on a fixed interval until a set duration passes or someone st
 _Avoid_: job, test
 
 **Session**:
-The attempts of the latest run that the app keeps in memory, up to its capacity.
-_Avoid_: log, history
+The attempts of the latest run that the app keeps in memory, up to its capacity. The full run is in the
+history.
+_Avoid_: log
+
+**History**:
+Every run and speed test stored on this computer, kept until deleted. A stored run is a **run record**.
+_Avoid_: log, archive
+
+**Interrupted run**:
+A stored run the app never finished because it or the computer went down; closed at the next start
+with the attempts that had been saved.
+_Avoid_: crashed run, lost run
 
 **Latency**:
 The round-trip time of a reply, in milliseconds.

@@ -37,6 +37,20 @@ public sealed class ConnectionViewModelTests
     });
 
     [Fact]
+    public Task OpenRouter_OpensTheGatewayAdminPageInTheBrowser() => WpfHost.RunAsync(async () =>
+    {
+        using var app = TestApp.Create();
+        var connection = app.Graph.Connection;
+        Assert.False(connection.OpenRouterCommand.CanExecute(null));
+
+        await connection.EnsureLoadedAsync();
+        connection.OpenRouterCommand.Execute(null);
+
+        Assert.Equal(["http://192.168.1.1/"], app.Desktop.Opened);
+        Assert.Contains("http://192.168.1.1/", connection.RouterHint, StringComparison.Ordinal);
+    });
+
+    [Fact]
     public Task PingGateway_FillsTheMonitorAndOpensIt() => WpfHost.RunAsync(async () =>
     {
         using var app = TestApp.Create();

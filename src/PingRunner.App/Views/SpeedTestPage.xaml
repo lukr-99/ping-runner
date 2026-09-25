@@ -82,11 +82,11 @@
         <!-- This session's results. -->
         <Border Grid.Row="4" Margin="0,8,0,0" Style="{StaticResource PR.Card}" Padding="0,14,0,8">
             <DockPanel Grid.IsSharedSizeScope="True">
-                <TextBlock DockPanel.Dock="Top" Style="{StaticResource PR.SectionLabel}" Margin="16,0,16,6" Text="THIS SESSION" />
+                <TextBlock DockPanel.Dock="Top" Style="{StaticResource PR.SectionLabel}" Margin="16,0,16,6" Text="RECENT TESTS" />
                 <TextBlock DockPanel.Dock="Bottom" Style="{StaticResource PR.Hint}" Margin="16,8,16,0" Text="{Binding DataHint}" />
                 <Grid DockPanel.Dock="Top" Margin="16,0,16,4" TextElement.FontSize="12" TextElement.Foreground="{DynamicResource PR.TextSecondaryBrush}">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition SharedSizeGroup="When" Width="80" />
+                        <ColumnDefinition SharedSizeGroup="When" Width="190" />
                         <ColumnDefinition SharedSizeGroup="Down" Width="120" />
                         <ColumnDefinition SharedSizeGroup="Up" Width="120" />
                         <ColumnDefinition SharedSizeGroup="Idle" Width="90" />
@@ -102,7 +102,7 @@
                     <TextBlock Grid.Column="5" Text="Bufferbloat" />
                     <TextBlock Grid.Column="6" Text="Data used" />
                 </Grid>
-                <TextBlock DockPanel.Dock="Top" Margin="16,4,16,0" Style="{StaticResource PR.Hint}" Text="No tests yet."
+                <TextBlock DockPanel.Dock="Top" Margin="16,4,16,0" Style="{StaticResource PR.Hint}" Text="No tests yet. Results are kept in History."
                            Visibility="{Binding History.Count, Converter={StaticResource ZeroToVisible}}" />
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding History}" Margin="16,0,16,0">
@@ -118,7 +118,7 @@
                                         <ColumnDefinition SharedSizeGroup="Grade" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding When}" FontFamily="Consolas" Foreground="{DynamicResource PR.TextSecondaryBrush}" />
+                                    <TextBlock Grid.Column="0" Text="{Binding WhenLong}" Foreground="{DynamicResource PR.TextSecondaryBrush}" />
                                     <TextBlock Grid.Column="1" Text="{Binding DownloadShort}" Style="{StaticResource PR.AccentValue}" />
                                     <TextBlock Grid.Column="2" Text="{Binding UploadShort}" Style="{StaticResource PR.AccentValue}" />
                                     <TextBlock Grid.Column="3" Text="{Binding IdleLatency}" />

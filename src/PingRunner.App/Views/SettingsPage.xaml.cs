@@ -8,5 +8,6 @@ public partial class SettingsPage
     {
         InitializeComponent();
         DataContext = viewModel;
+        Loaded += async (_, _) => await viewModel.RefreshHistoryAsync();
     }
 }

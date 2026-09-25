@@ -8,7 +8,9 @@
     "LICENSE.md",
     "CHANGELOG.md"
   ],
-  "migration_directories": [],
+  "migration_directories": [
+    "src/PingRunner.Infrastructure/History/Migrations"
+  ],
   "type_scan_roots": [
     "src",
     "tests"

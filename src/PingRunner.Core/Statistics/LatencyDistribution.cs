@@ -18,6 +18,9 @@ public sealed class LatencyDistribution
 
     public int Count => sorted.Length;
 
+    /// <summary>Every sample, fastest first.</summary>
+    public IReadOnlyList<double> Samples => sorted;
+
     public double Minimum => sorted[0];
 
     public double Maximum => sorted[^1];

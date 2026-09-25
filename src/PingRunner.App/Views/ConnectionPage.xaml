@@ -26,10 +26,18 @@
         <controls:PageHeader Grid.Row="0" Icon="Router24" Title="Connection"
                              Subtitle="The adapter carrying your internet traffic, and where to point a ping.">
             <controls:PageHeader.Actions>
-                <ui:Button Content="Refresh"
-                           Style="{StaticResource PR.TonalButton}"
-                           Icon="{ui:SymbolIcon ArrowClockwise24}"
-                           Command="{Binding RefreshCommand}" />
+                <StackPanel Orientation="Horizontal">
+                    <ui:Button Content="Open router"
+                               Appearance="Primary"
+                               Icon="{ui:SymbolIcon Globe24}"
+                               Command="{Binding OpenRouterCommand}"
+                               ToolTip="{Binding RouterHint}" />
+                    <ui:Button Margin="8,0,0,0"
+                               Content="Refresh"
+                               Style="{StaticResource PR.TonalButton}"
+                               Icon="{ui:SymbolIcon ArrowClockwise24}"
+                               Command="{Binding RefreshCommand}" />
+                </StackPanel>
             </controls:PageHeader.Actions>
         </controls:PageHeader>
 
@@ -79,8 +87,12 @@
 
                             <TextBlock Grid.Row="4" Style="{StaticResource Key}" Text="Gateway" />
                             <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource Value}" FontFamily="Consolas" Text="{Binding Gateway, TargetNullValue=–}" />
-                            <ui:Button Style="{StaticResource PR.TonalButton}" Grid.Row="4" Grid.Column="2" Margin="8,4,0,4" Content="Ping" Icon="{ui:SymbolIcon Pulse24}"
-                                       Command="{Binding PingGatewayCommand}" ToolTip="Ping your router: problems here are inside your home network" />
+                            <StackPanel Grid.Row="4" Grid.Column="2" Margin="8,4,0,4" Orientation="Horizontal">
+                                <ui:Button Style="{StaticResource PR.TonalButton}" Content="Open" Icon="{ui:SymbolIcon Open24}"
+                                           Command="{Binding OpenRouterCommand}" ToolTip="{Binding RouterHint}" />
+                                <ui:Button Margin="6,0,0,0" Style="{StaticResource PR.TonalButton}" Content="Ping" Icon="{ui:SymbolIcon Pulse24}"
+                                           Command="{Binding PingGatewayCommand}" ToolTip="Ping your router: problems here are inside your home network" />
+                            </StackPanel>
 
                             <TextBlock Grid.Row="5" Style="{StaticResource Key}" Text="DNS servers" />
                             <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource Value}" FontFamily="Consolas" Text="{Binding DnsServers}" />

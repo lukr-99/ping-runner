@@ -5,8 +5,7 @@ namespace PingRunner.App.ViewModels;
 
 /// <summary>
 /// A <see cref="PingStatistics"/> written out for the stat tiles, with a severity for the figures
-/// that decide whether a connection is healthy: loss above 1 % warns and above 5 % is bad; call
-/// quality follows its rating.
+/// that decide whether a connection is healthy (<see cref="SeverityRules"/>).
 /// </summary>
 public sealed record StatisticsDisplay
 {
@@ -65,24 +64,10 @@ public sealed record StatisticsDisplay
             JitterHint = latency is null ? "Change between replies" : $"σ {Units.Milliseconds(latency.StandardDeviation)}",
             Loss = Units.Percent(statistics.LossFraction),
             LossHint = statistics.Sent == 0 ? "Lost pings" : $"{Units.Count(statistics.Lost)} of {Units.Count(statistics.Sent)} lost",
-            LossSeverity = statistics.LossFraction switch
-            {
-                null => Severity.Neutral,
-                0 => Severity.Good,
-                <= 0.01 => Severity.Neutral,
-                <= 0.05 => Severity.Warning,
-                _ => Severity.Bad,
-            },
+            LossSeverity = SeverityRules.Loss(statistics.LossFraction),
             Quality = quality is null ? Units.None : $"{quality.MeanOpinionScore:0.0} · {quality.Rating}",
             QualityHint = "Estimated MOS for voice",
-            QualitySeverity = quality?.Rating switch
-            {
-                null => Severity.Neutral,
-                CallQualityRating.Excellent or CallQualityRating.Good => Severity.Good,
-                CallQualityRating.Fair => Severity.Neutral,
-                CallQualityRating.Poor => Severity.Warning,
-                _ => Severity.Bad,
-            },
+            QualitySeverity = SeverityRules.Quality(quality?.Rating),
             Sent = Units.Count(statistics.Sent),
             SentHint = statistics.Sent == 0 ? "Pings sent" : $"{Units.Count(statistics.Received)} replies over {Units.Span(statistics.Span)}",
             Outages = Units.Count(statistics.Outages.Count),
