@@ -42,15 +42,23 @@ public sealed class ThroughputMeter
     }
 
     /// <summary>
-    /// The best rate sustained across at least <paramref name="window"/>; the whole transfer's rate
-    /// when it was shorter than the window.
+    /// The best rate sustained across at least <paramref name="window"/>, counting only stretches that
+    /// start at or after <paramref name="warmUp"/>; the whole transfer's rate when no such stretch fits.
+    /// Leaving the warm-up out matters for uploads, where the first bytes fill socket buffers and read
+    /// faster than the line.
     /// </summary>
-    public double PeakBitsPerSecond(TimeSpan window)
+    public double PeakBitsPerSecond(TimeSpan window, TimeSpan warmUp = default)
     {
+        var first = samples.FindIndex(sample => sample.Elapsed >= warmUp);
+        if (first < 0)
+        {
+            return Rate(samples[0], samples[^1]);
+        }
+
         var peak = 0d;
         var found = false;
-        var start = 0;
-        for (var end = 1; end < samples.Count; end++)
+        var start = first;
+        for (var end = first + 1; end < samples.Count; end++)
         {
             while (start + 1 < end && samples[end].Elapsed - samples[start + 1].Elapsed >= window)
             {
@@ -78,7 +86,7 @@ public sealed class ThroughputMeter
         return new ThroughputResult(
             direction,
             AverageBitsPerSecond(options.WarmUp),
-            PeakBitsPerSecond(options.PeakWindow),
+            PeakBitsPerSecond(options.PeakWindow, options.WarmUp),
             TotalBytes,
             Elapsed,
             Series());

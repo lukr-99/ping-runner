@@ -46,6 +46,16 @@ public sealed class ThroughputMeterTests
     }
 
     [Fact]
+    public void PeakBitsPerSecond_BurstDuringWarmUp_IsLeftOut()
+    {
+        // 40 Mbit/s for the first second (buffers filling), then a steady 10 Mbit/s.
+        var meter = Meter((0.5, 20 * Megabit), (1.0, 40 * Megabit), (1.5, 45 * Megabit), (2.0, 50 * Megabit), (2.5, 55 * Megabit));
+
+        Assert.Equal(40_000_000, meter.PeakBitsPerSecond(TimeSpan.FromSeconds(1)), 3);
+        Assert.Equal(10_000_000, meter.PeakBitsPerSecond(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1)), 3);
+    }
+
+    [Fact]
     public void PeakBitsPerSecond_ShorterThanTheWindow_UsesTheWholeTransfer()
     {
         var meter = Meter((0.2, 1 * Megabit), (0.4, 3 * Megabit));
