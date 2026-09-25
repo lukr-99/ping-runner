@@ -6,6 +6,8 @@ release's number; the section moves from `[Unreleased]` to that number in the re
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-25
+
 ### Added
 
 - History: every ping run, with every ping, and every speed test is kept on this computer until you

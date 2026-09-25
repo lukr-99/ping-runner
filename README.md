@@ -8,9 +8,11 @@ runs a speed test that also measures how much a full line slows everything else 
 
 ## Status
 
-Version 2.0.0 is the current release and the first one published on GitHub. It replaces the 1.x window
-and pop-up graph with one window and five pages. Local builds report themselves as `2.0.0-dev`.
-Version 1.1.0 was installed with the old `install.ps1`; the 2.0 installer removes that copy.
+Version 2.1.0 is the current release. It adds the History page, which keeps every ping run and speed
+test on this computer, and a shortcut to your router's admin page. Version 2.0.0 replaced the 1.x window
+and pop-up graph with one window and its pages. Local builds report themselves as `2.1.0-dev`. Update
+from Settings: "Check for updates" opens the release page, and the new installer replaces the old
+version in place, keeping settings and history.
 
 ## What it shows
 
