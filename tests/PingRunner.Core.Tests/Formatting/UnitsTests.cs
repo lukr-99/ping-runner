@@ -1,7 +1,7 @@
 using System.Globalization;
-using PingRunner.App.Formatting;
+using PingRunner.Core.Formatting;
 
-namespace PingRunner.App.Tests.ViewModels;
+namespace PingRunner.Core.Tests.Formatting;
 
 public sealed class UnitsTests : IDisposable
 {

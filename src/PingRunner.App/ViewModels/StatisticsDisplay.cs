@@ -1,4 +1,4 @@
-using PingRunner.App.Formatting;
+using PingRunner.Core.Formatting;
 using PingRunner.Core.Statistics;
 
 namespace PingRunner.App.ViewModels;

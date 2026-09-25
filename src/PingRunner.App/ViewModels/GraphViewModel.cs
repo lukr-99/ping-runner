@@ -3,7 +3,7 @@ using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PingRunner.App.Desktop;
-using PingRunner.App.Formatting;
+using PingRunner.Core.Formatting;
 using PingRunner.Core.Graphing;
 using PingRunner.Core.Pinging;
 using PingRunner.Core.Sessions;

@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using PingRunner.App.Composition;
 using PingRunner.App.Desktop;
 using PingRunner.App.Formatting;
+using PingRunner.Core.Formatting;
 using PingRunner.Core.Graphing;
 using PingRunner.Core.Pinging;
 using PingRunner.Core.Sessions;

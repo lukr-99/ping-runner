@@ -1,6 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
-using PingRunner.App.Formatting;
+using PingRunner.Core.Formatting;
 using PingRunner.Core.Throughput;
 
 namespace PingRunner.App.Controls;

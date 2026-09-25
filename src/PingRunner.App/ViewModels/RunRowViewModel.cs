@@ -1,5 +1,5 @@
 using System.Globalization;
-using PingRunner.App.Formatting;
+using PingRunner.Core.Formatting;
 using PingRunner.Core.History;
 using PingRunner.Core.Statistics;
 

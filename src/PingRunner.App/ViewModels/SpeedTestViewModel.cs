@@ -3,7 +3,7 @@ using System.Net.Http;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PingRunner.App.Composition;
-using PingRunner.App.Formatting;
+using PingRunner.Core.Formatting;
 using PingRunner.Core.History;
 using PingRunner.Core.SpeedTest;
 using PingRunner.Core.Throughput;
