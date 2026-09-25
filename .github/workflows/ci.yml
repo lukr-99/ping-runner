@@ -29,6 +29,9 @@ jobs:
       - name: Validate repository (CodePrint)
         run: python tools/validate_repository.py --root .
 
+      - name: History migrations, full chain and latest in isolation
+        run: python tools/migrations.py test src/PingRunner.Infrastructure/History/Migrations
+
       - name: Check PowerShell syntax
         shell: pwsh
         run: ./tools/test-powershell-syntax.ps1
