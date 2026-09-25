@@ -17,6 +17,13 @@ public interface IPingRunHistory
 
     Task FinishRunAsync(long runId, RunOutcome outcome, DateTimeOffset? endedAt, RunSummary summary, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Stores pings read from a file as one finished run, all at once. The attempts are one target's,
+    /// in time order; the interval is taken from their spacing.
+    /// </summary>
+    /// <returns>The new run's id.</returns>
+    Task<long> ImportRunAsync(string sourceName, IReadOnlyList<PingAttempt> attempts, RunSummary summary, CancellationToken cancellationToken);
+
     /// <summary>Every run, newest first.</summary>
     Task<IReadOnlyList<RunRecord>> ListRunsAsync(CancellationToken cancellationToken);
 

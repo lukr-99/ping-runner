@@ -26,7 +26,43 @@ public sealed class SqlitePingRunHistoryTests
         Assert.Equal(TimeSpan.FromMinutes(5), run.PlannedDuration);
         Assert.Equal(RunOutcome.Completed, run.Outcome);
         Assert.Equal(summary, run.Summary);
+        Assert.Equal(RunSource.Recorded, run.Source);
+        Assert.Null(run.SourceName);
         Assert.Equal(attempts, await history.Runs.LoadAttemptsAsync(id, token));
+    }
+
+    [Fact]
+    public async Task ImportRun_StoresAFinishedRunMarkedWithItsFile()
+    {
+        using var history = new HistoryFixture();
+        var token = TestContext.Current.CancellationToken;
+        var attempts = HistoryFixture.Attempts(30, "1.1.1.1");
+        var summary = RunSummary.From(PingStatistics.From(attempts));
+
+        var id = await history.Runs.ImportRunAsync("router-log.xlsx", attempts, summary, token);
+
+        var run = Assert.Single(await history.Runs.ListRunsAsync(token));
+        Assert.Equal(id, run.Id);
+        Assert.Equal(RunSource.Imported, run.Source);
+        Assert.Equal("router-log.xlsx", run.SourceName);
+        Assert.Equal("1.1.1.1", run.TargetHost);
+        Assert.Equal(RunOutcome.Completed, run.Outcome);
+        Assert.Equal(TimeSpan.FromSeconds(1), run.Interval);
+        Assert.Equal(TimeSpan.FromSeconds(29), run.Duration);
+        Assert.Equal(summary, run.Summary);
+        Assert.Equal(attempts, await history.Runs.LoadAttemptsAsync(id, token));
+    }
+
+    [Fact]
+    public async Task ImportRun_SinglePing_StillGetsAnInterval()
+    {
+        using var history = new HistoryFixture();
+        var token = TestContext.Current.CancellationToken;
+        var attempts = HistoryFixture.Attempts(1);
+
+        await history.Runs.ImportRunAsync("one.csv", attempts, RunSummary.From(PingStatistics.From(attempts)), token);
+
+        Assert.Equal(TimeSpan.FromSeconds(1), Assert.Single(await history.Runs.ListRunsAsync(token)).Interval);
     }
 
     [Fact]

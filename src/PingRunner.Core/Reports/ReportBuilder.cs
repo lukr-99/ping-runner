@@ -44,7 +44,7 @@ public static class ReportBuilder
             ? input.SpeedTests.Where(test => test.StartedAt >= from && test.StartedAt <= to).OrderBy(test => test.StartedAt).ToList()
             : [];
         var target = string.Join(", ", attempts.Select(attempt => attempt.TargetHost).Distinct(StringComparer.OrdinalIgnoreCase));
-        var interval = TypicalInterval(attempts);
+        var interval = PingSpacing.Typical(attempts);
 
         return new ConnectionReport
         {
@@ -96,16 +96,6 @@ public static class ReportBuilder
             }),
     ];
 
-    private static TimeSpan? TypicalInterval(List<PingAttempt> attempts)
-    {
-        if (attempts.Count < 2)
-        {
-            return null;
-        }
-
-        var gaps = attempts.Zip(attempts.Skip(1), (earlier, later) => (later.Timestamp - earlier.Timestamp).Ticks).Order().ToList();
-        return TimeSpan.FromTicks(gaps[gaps.Count / 2]);
-    }
 
     private static List<string> Method(string target, TimeSpan? interval, TimeSpan offset, List<SpeedTestResult> speedTests, string appVersion)
     {

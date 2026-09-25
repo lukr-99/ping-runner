@@ -12,5 +12,10 @@ public sealed record RunRecord(
     RunOutcome Outcome,
     RunSummary Summary)
 {
+    public RunSource Source { get; init; } = RunSource.Recorded;
+
+    /// <summary>The file an imported run was read from; null for a recorded run.</summary>
+    public string? SourceName { get; init; }
+
     public TimeSpan? Duration => EndedAt is { } ended ? ended - StartedAt : null;
 }

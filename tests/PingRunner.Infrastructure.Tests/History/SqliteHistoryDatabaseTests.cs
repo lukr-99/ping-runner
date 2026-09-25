@@ -107,7 +107,7 @@ public sealed class SqliteHistoryDatabaseTests
         {
             connection.Open();
             using var command = connection.CreateCommand();
-            command.CommandText = "INSERT INTO schema_migrations (number, filename, checksum_sha256) VALUES (2, '0002_future.sql', 'x')";
+            command.CommandText = "INSERT INTO schema_migrations (number, filename, checksum_sha256) VALUES (9999, '9999_future.sql', 'x')";
             command.ExecuteNonQuery();
         }
 

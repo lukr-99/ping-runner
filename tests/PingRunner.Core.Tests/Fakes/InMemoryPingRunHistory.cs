@@ -72,6 +72,23 @@ public sealed class InMemoryPingRunHistory : IPingRunHistory
         return Task.CompletedTask;
     }
 
+    public Task<long> ImportRunAsync(string sourceName, IReadOnlyList<PingAttempt> imported, RunSummary summary, CancellationToken cancellationToken)
+    {
+        Check();
+        lock (gate)
+        {
+            var id = nextId++;
+            var interval = PingSpacing.Typical(imported) ?? TimeSpan.FromSeconds(1);
+            runs[id] = new RunRecord(id, imported[0].TargetHost, imported[0].Timestamp, imported[^1].Timestamp, interval, interval, null, RunOutcome.Completed, summary)
+            {
+                Source = RunSource.Imported,
+                SourceName = sourceName,
+            };
+            attempts[id] = new SortedDictionary<int, PingAttempt>(imported.Select((attempt, index) => (attempt, index)).ToDictionary(pair => pair.index, pair => pair.attempt));
+            return Task.FromResult(id);
+        }
+    }
+
     public Task<IReadOnlyList<RunRecord>> ListRunsAsync(CancellationToken cancellationToken)
     {
         lock (gate)
