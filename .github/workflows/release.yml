@@ -1,0 +1,56 @@
+name: Release
+
+# A v* tag builds the installer and its checksum and drafts a GitHub Release with both. The draft is
+# published by hand after the checks in docs/releasing.md; until then the in-app update check cannot
+# see it.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Installer and draft release
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Tag matches Version.props
+        id: version
+        shell: pwsh
+        run: |
+          $tagVersion = '${{ github.ref_name }}' -replace '^v', ''
+          [xml]$props = Get-Content -Raw -LiteralPath Version.props
+          $version = @($props.Project.PropertyGroup.PingRunnerVersion | Where-Object { $_ })[0]
+          if ($version -ne $tagVersion) { throw "Tag $tagVersion does not match Version.props $version." }
+          "value=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Test
+        run: dotnet test --solution PingRunner.slnx -c Release
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress --yes
+
+      - name: Build installer and checksum
+        shell: pwsh
+        run: ./installer/build-installer.ps1
+
+      - name: Draft the GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = '${{ steps.version.outputs.value }}'
+          $setup = "installer/dist/PingRunner-$version-setup.exe"
+          gh release create '${{ github.ref_name }}' $setup "$setup.sha256" `
+            --verify-tag --draft --title "Ping Runner $version" --notes-file (./installer/release-notes.ps1 -Version $version)

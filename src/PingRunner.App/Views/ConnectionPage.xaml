@@ -1,0 +1,138 @@
+<Page x:Class="PingRunner.App.Views.ConnectionPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:controls="clr-namespace:PingRunner.App.Controls"
+      Title="Connection"
+      Foreground="{DynamicResource PR.TextPrimaryBrush}">
+    <Page.Resources>
+        <Style x:Key="Key" TargetType="TextBlock" BasedOn="{StaticResource PR.FieldLabel}">
+            <Setter Property="Margin" Value="0,8,16,8" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+        </Style>
+        <Style x:Key="Value" TargetType="TextBlock" BasedOn="{StaticResource PR.Body}">
+            <Setter Property="Margin" Value="0,8,0,8" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+        </Style>
+    </Page.Resources>
+
+    <Grid Margin="{StaticResource PR.PagePadding}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:PageHeader Grid.Row="0" Icon="Router24" Title="Connection"
+                             Subtitle="The adapter carrying your internet traffic, and where to point a ping.">
+            <controls:PageHeader.Actions>
+                <ui:Button Content="Refresh"
+                           Style="{StaticResource PR.TonalButton}"
+                           Icon="{ui:SymbolIcon ArrowClockwise24}"
+                           Command="{Binding RefreshCommand}" />
+            </controls:PageHeader.Actions>
+        </controls:PageHeader>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource PR.Card}" VerticalAlignment="Top">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource PR.SectionLabel}" Text="THIS COMPUTER" />
+                        <ui:InfoBar Title="Offline" Message="No network adapter has a route to the internet." Severity="Warning"
+                                    IsClosable="False" IsOpen="{Binding IsOffline}" Margin="0,0,0,8" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Style="{StaticResource Key}" Text="Adapter" />
+                            <StackPanel Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,8,0,8">
+                                <TextBlock Style="{StaticResource PR.Body}" FontWeight="SemiBold" Text="{Binding AdapterName}"
+                                           Foreground="{DynamicResource PR.AccentBrush}" />
+                                <TextBlock Style="{StaticResource PR.Hint}" Text="{Binding AdapterDescription}" />
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="1" Style="{StaticResource Key}" Text="Type" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource Value}" Text="{Binding AdapterKind}" />
+
+                            <TextBlock Grid.Row="2" Style="{StaticResource Key}" Text="Link speed" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource Value}" Text="{Binding LinkSpeed}" />
+
+                            <TextBlock Grid.Row="3" Style="{StaticResource Key}" Text="Local addresses" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource Value}" FontFamily="Consolas" Text="{Binding LocalAddresses}" />
+
+                            <TextBlock Grid.Row="4" Style="{StaticResource Key}" Text="Gateway" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource Value}" FontFamily="Consolas" Text="{Binding Gateway, TargetNullValue=–}" />
+                            <ui:Button Style="{StaticResource PR.TonalButton}" Grid.Row="4" Grid.Column="2" Margin="8,4,0,4" Content="Ping" Icon="{ui:SymbolIcon Pulse24}"
+                                       Command="{Binding PingGatewayCommand}" ToolTip="Ping your router: problems here are inside your home network" />
+
+                            <TextBlock Grid.Row="5" Style="{StaticResource Key}" Text="DNS servers" />
+                            <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource Value}" FontFamily="Consolas" Text="{Binding DnsServers}" />
+                            <ui:Button Style="{StaticResource PR.TonalButton}" Grid.Row="5" Grid.Column="2" Margin="8,4,0,4" VerticalAlignment="Top" Content="Ping" Icon="{ui:SymbolIcon Pulse24}"
+                                       Command="{Binding PingDnsCommand}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Column="2">
+                    <Border Style="{StaticResource PR.Card}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource PR.SectionLabel}" Text="INTERNET" />
+                            <TextBlock Style="{StaticResource PR.FieldLabel}" Text="Public IP address" />
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <ui:Button Style="{StaticResource PR.TonalButton}" Content="{Binding PublicIpToggleText}" Icon="{ui:SymbolIcon Eye24}" Command="{Binding TogglePublicIpCommand}" />
+                                    <ui:Button Style="{StaticResource PR.TonalButton}" Margin="6,0,0,0" Icon="{ui:SymbolIcon Copy24}" ToolTip="Copy" Command="{Binding CopyPublicIpCommand}" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding PublicIpText}" FontSize="20" FontWeight="SemiBold" FontFamily="Consolas" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource PR.AccentBrush}" />
+                            </DockPanel>
+                            <TextBlock Margin="0,10,0,0" Style="{StaticResource PR.Hint}"
+                                       Text="Asked of api.ipify.org (or checkip.amazonaws.com) when this page opens, and hidden until you show it." />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Margin="0,12,0,0" Style="{StaticResource PR.Card}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource PR.SectionLabel}" Text="QUICK TARGETS" />
+                            <TextBlock Style="{StaticResource PR.Hint}" Margin="0,0,0,10"
+                                       Text="Ping your gateway first: loss there points at Wi-Fi or cabling. Loss only to these public resolvers points past your router." />
+                            <ItemsControl ItemsSource="{Binding QuickTargets}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <DockPanel Margin="0,4">
+                                            <ui:Button Style="{StaticResource PR.TonalButton}" DockPanel.Dock="Right" Content="Ping" Icon="{ui:SymbolIcon Pulse24}"
+                                                       Command="{Binding DataContext.PingHostCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                       CommandParameter="{Binding Host}" />
+                                            <TextBlock VerticalAlignment="Center" Style="{StaticResource PR.Body}">
+                                                <Run Text="{Binding Name, Mode=OneWay}" FontWeight="SemiBold" />
+                                                <Run Text="  " />
+                                                <Run Text="{Binding Host, Mode=OneWay}" FontFamily="Consolas" Foreground="{DynamicResource PR.AccentBrush}" />
+                                            </TextBlock>
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</Page>

@@ -1,0 +1,32 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <Company>Lukáš Krejčí</Company>
+    <Authors>Lukáš Krejčí</Authors>
+    <Product>Ping Runner</Product>
+    <Copyright>Copyright Lukáš Krejčí. PolyForm Noncommercial 1.0.0.</Copyright>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)Version.props" />
+
+  <!--
+    Only builds made with -p:PingRunnerReleaseBuild=true (installer/build-installer.ps1 and the release
+    workflow) carry the plain version. Every other build is "-dev", so a local or test build is never
+    mistaken for a shipped release and the update check never treats it as the installed release.
+  -->
+  <PropertyGroup>
+    <PingRunnerReleaseBuild Condition="'$(PingRunnerReleaseBuild)' == ''">false</PingRunnerReleaseBuild>
+    <Version Condition="'$(PingRunnerReleaseBuild)' == 'true'">$(PingRunnerVersion)</Version>
+    <Version Condition="'$(PingRunnerReleaseBuild)' != 'true'">$(PingRunnerVersion)-dev</Version>
+    <AssemblyVersion>$(PingRunnerVersion).0</AssemblyVersion>
+    <FileVersion>$(PingRunnerVersion).0</FileVersion>
+    <InformationalVersion>$(Version)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+</Project>

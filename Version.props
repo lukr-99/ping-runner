@@ -1,0 +1,9 @@
+<Project>
+  <!--
+    The one version of Ping Runner. Every project, the installer script and the release workflow read
+    it from here. Bump it in the release commit together with CHANGELOG.md (docs/releasing.md).
+  -->
+  <PropertyGroup>
+    <PingRunnerVersion>2.0.0</PingRunnerVersion>
+  </PropertyGroup>
+</Project>

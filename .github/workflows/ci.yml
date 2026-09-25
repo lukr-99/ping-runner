@@ -1,0 +1,67 @@
+name: CI
+
+# Every push to main and every pull request. Make both jobs required checks on main.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository:
+    name: Repository baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Validate repository (CodePrint)
+        run: python tools/validate_repository.py --root .
+
+      - name: Check PowerShell syntax
+        shell: pwsh
+        run: ./tools/test-powershell-syntax.ps1
+
+  windows:
+    name: Format, build and tests
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: "**/*.csproj"
+
+      - name: Restore
+        run: dotnet restore PingRunner.slnx
+
+      - name: Check formatting
+        run: dotnet format PingRunner.slnx --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build PingRunner.slnx -c Release --no-restore
+
+      - name: Test
+        run: dotnet test --solution PingRunner.slnx -c Release --no-build --report-xunit-trx --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: TestResults/
+          if-no-files-found: warn

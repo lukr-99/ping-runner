@@ -1,0 +1,111 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:vm="clr-namespace:PingRunner.App.ViewModels"
+                    xmlns:converters="clr-namespace:PingRunner.App.Converters">
+
+    <!--
+      Ping Runner's shared styles. Every color comes from the semantic PR.*Brush keys that
+      Theming/ThemeApplier sets at run time, read through DynamicResource so a theme switch shows at once.
+    -->
+    <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    <converters:ZeroToVisibleConverter x:Key="ZeroToVisible" />
+    <converters:NullToCollapsedConverter x:Key="NullToCollapsed" />
+
+    <Thickness x:Key="PR.PagePadding">24,12,24,20</Thickness>
+    <CornerRadius x:Key="PR.CardCorner">10</CornerRadius>
+
+    <Style x:Key="PR.Card" TargetType="Border">
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="CornerRadius" Value="{StaticResource PR.CardCorner}" />
+        <Setter Property="Background" Value="{DynamicResource PR.SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PR.BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <Style x:Key="PR.PageTitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource PR.TextPrimaryBrush}" />
+    </Style>
+
+    <Style x:Key="PR.PageSubtitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Margin" Value="0,2,0,0" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Foreground" Value="{DynamicResource PR.TextSecondaryBrush}" />
+    </Style>
+
+    <Style x:Key="PR.SectionLabel" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+        <Setter Property="Foreground" Value="{DynamicResource PR.AccentBrush}" />
+    </Style>
+
+    <!-- A figure in the accent color, for readings that carry no warning. -->
+    <Style x:Key="PR.AccentValue" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource PR.AccentBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style x:Key="PR.FieldLabel" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Margin" Value="0,0,0,4" />
+        <Setter Property="Foreground" Value="{DynamicResource PR.TextSecondaryBrush}" />
+    </Style>
+
+    <Style x:Key="PR.Hint" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Foreground" Value="{DynamicResource PR.TextSecondaryBrush}" />
+    </Style>
+
+    <Style x:Key="PR.Body" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Foreground" Value="{DynamicResource PR.TextPrimaryBrush}" />
+    </Style>
+
+    <!-- A figure colored by its Severity (bound through Tag). -->
+    <Style x:Key="PR.SeverityValue" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource PR.TextPrimaryBrush}" />
+        <Style.Triggers>
+            <Trigger Property="Tag" Value="{x:Static vm:Severity.Good}">
+                <Setter Property="Foreground" Value="{DynamicResource PR.SuccessBrush}" />
+            </Trigger>
+            <Trigger Property="Tag" Value="{x:Static vm:Severity.Warning}">
+                <Setter Property="Foreground" Value="{DynamicResource PR.WarningBrush}" />
+            </Trigger>
+            <Trigger Property="Tag" Value="{x:Static vm:Severity.Bad}">
+                <Setter Property="Foreground" Value="{DynamicResource PR.DangerBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- The small colored dot in front of a status line. -->
+    <Style x:Key="PR.StatusDot" TargetType="Ellipse">
+        <Setter Property="Width" Value="8" />
+        <Setter Property="Height" Value="8" />
+        <Setter Property="Fill" Value="{DynamicResource PR.TextSecondaryBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                <Setter Property="Fill" Value="{DynamicResource PR.AccentBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- The status pill: neutral while idle, tinted with the accent while something runs. -->
+    <Style x:Key="PR.StatusPill" TargetType="Border">
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Background" Value="{DynamicResource PR.SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PR.BorderBrush}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource PR.AccentSoftBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource PR.AccentBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>
