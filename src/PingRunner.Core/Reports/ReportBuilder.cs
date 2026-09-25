@@ -61,6 +61,7 @@ public static class ReportBuilder
             BucketSize = bucketSize,
             Buckets = buckets,
             Findings = Findings(target, statistics, interval, bucketSize, buckets, speedTests, to - from),
+            Method = Method(target, interval, from.Offset, speedTests, input.AppVersion),
             SpeedTests = speedTests,
             Connection = options.IncludeConnection ? input.Connection : null,
             PublicIp = options.IncludePublicIp ? input.PublicIp : null,
@@ -104,6 +105,28 @@ public static class ReportBuilder
 
         var gaps = attempts.Zip(attempts.Skip(1), (earlier, later) => (later.Timestamp - earlier.Timestamp).Ticks).Order().ToList();
         return TimeSpan.FromTicks(gaps[gaps.Count / 2]);
+    }
+
+    private static List<string> Method(string target, TimeSpan? interval, TimeSpan offset, List<SpeedTestResult> speedTests, string appVersion)
+    {
+        var every = interval is { } gap && gap > TimeSpan.Zero ? $", about one every {Units.Span(gap)}," : string.Empty;
+        var method = new List<string>
+        {
+            $"Ping Runner {appVersion} sent ICMP echo requests (pings) to {target}{every} and recorded whether each one was answered and how long the answer took.",
+            $"Packet loss is the share of pings that got no answer. An outage is {PingStatistics.MinimumLostInARow} or more lost pings in a row; "
+                + "it runs from the first lost ping to the next answer.",
+            "Latency figures use answered pings only. Jitter is the average change in latency from one answer to the next. "
+                + "Call quality is an estimate from the ITU-T G.107 E-model, not a measured call.",
+            $"Times are in {ReportText.Offset(offset)}, the time zone the pings were recorded in.",
+        };
+
+        if (speedTests.Count > 0)
+        {
+            var servers = string.Join(", ", speedTests.Select(test => test.Server).Distinct(StringComparer.OrdinalIgnoreCase));
+            method.Add($"Speed tests download and upload data through {servers} and ping while the line is full; the rise in latency over idle is the bufferbloat.");
+        }
+
+        return method;
     }
 
     private static List<string> Findings(

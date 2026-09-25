@@ -79,6 +79,19 @@ public sealed class PingCsvReaderTests : IDisposable
     }
 
     [Fact]
+    public async Task Read_OffsetWrittenAsUtc_IsZero()
+    {
+        var imported = await Read("""
+            Time,UTC offset,Latency (ms)
+            2026-09-25 18:00:00,UTC,12
+            2026-09-25 18:00:01,UTC+01:00,13
+            """);
+
+        Assert.Equal(TimeSpan.Zero, imported.Attempts.Single(attempt => attempt.RoundtripMilliseconds == 12).Timestamp.Offset);
+        Assert.Equal(TimeSpan.FromHours(1), imported.Attempts.Single(attempt => attempt.RoundtripMilliseconds == 13).Timestamp.Offset);
+    }
+
+    [Fact]
     public async Task Read_TabSeparatedWithoutResultColumn_TakesRepliesFromLatency()
     {
         var imported = await Read("timestamp\thost\trtt\n2026-09-25T10:00:00Z\t9.9.9.9\t12\n2026-09-25T10:00:01Z\t9.9.9.9\t\n");

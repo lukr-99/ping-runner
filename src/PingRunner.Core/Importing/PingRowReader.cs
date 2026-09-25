@@ -132,6 +132,11 @@ public sealed partial class PingRowReader
     private static bool TryOffset(string text, out TimeSpan offset)
     {
         offset = default;
+        if (Normalize(text) is "utc" or "gmt" or "z")
+        {
+            return true;
+        }
+
         var match = OffsetPattern().Match(text);
         if (!match.Success)
         {

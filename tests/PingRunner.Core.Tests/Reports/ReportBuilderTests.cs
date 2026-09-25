@@ -89,6 +89,18 @@ public sealed class ReportBuilderTests : IDisposable
     }
 
     [Fact]
+    public void Build_Method_ExplainsTheTermsAndTheTimeZone()
+    {
+        var method = ReportBuilder.Build(Input(Attempts.Series(10, 12, 14))).Method;
+
+        Assert.Equal(
+            "Ping Runner 2.2.0 sent ICMP echo requests (pings) to 8.8.8.8, about one every 1.0 s, and recorded whether each one was answered and how long the answer took.",
+            method[0]);
+        Assert.Contains("Times are in UTC+02:00, the time zone the pings were recorded in.", method);
+        Assert.DoesNotContain(method, line => line.StartsWith("Speed tests", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Build_CleanConnection_SaysSo()
     {
         var findings = ReportBuilder.Build(Input(Attempts.Series(10, 12, 14, 12))).Findings;

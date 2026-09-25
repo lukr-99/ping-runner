@@ -39,6 +39,9 @@ public sealed record ConnectionReport
 
     public required IReadOnlyList<string> Findings { get; init; }
 
+    /// <summary>How the figures were measured and what the terms mean, for the reader who was not there.</summary>
+    public required IReadOnlyList<string> Method { get; init; }
+
     public required IReadOnlyList<SpeedTestResult> SpeedTests { get; init; }
 
     public required ConnectionSnapshot? Connection { get; init; }
