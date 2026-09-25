@@ -1,157 +1,130 @@
-using PingRunner.Core.Pinging.Models;
-using PingRunner.Core.Pinging.Services;
+using System.Globalization;
+using System.Reflection;
+using PingRunner.Core.Pinging;
+using PingRunner.Core.SpeedTest;
+using PingRunner.Core.Statistics;
+using PingRunner.Core.Throughput;
+using PingRunner.Infrastructure.Pinging;
+using PingRunner.Infrastructure.Throughput;
 
-var settings = BuildSettingsFromConsole();
-var pingService = new PingService();
-
-using var cancellationTokenSource = new CancellationTokenSource();
-
+// pingrunner              ask for a host and ping it, then print the session's statistics
+// pingrunner speed [s] [n] run a speed test for s seconds each way on n streams (defaults 10 and 4)
+// pingrunner --version
+var version = typeof(PingLoop).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
+using var cancellation = new CancellationTokenSource();
 Console.CancelKeyPress += (_, eventArgs) =>
 {
     eventArgs.Cancel = true;
-    cancellationTokenSource.Cancel();
+    cancellation.Cancel();
 };
 
-Console.WriteLine();
-Console.WriteLine($"Starting ping run for {settings.TargetHost}");
-Console.WriteLine("Press Ctrl+C to stop.");
-Console.WriteLine();
-
-var sentCount = 0;
-var successCount = 0;
-var totalLatencyMilliseconds = 0L;
-var latencySamples = 0;
-
-await foreach (var attempt in pingService.RunAsync(settings, cancellationTokenSource.Token))
+switch (args)
 {
-    sentCount++;
-
-    if (attempt.IsSuccess)
-    {
-        successCount++;
-    }
-
-    if (attempt.RoundtripTimeMilliseconds is { } roundtripTimeMilliseconds)
-    {
-        totalLatencyMilliseconds += roundtripTimeMilliseconds;
-        latencySamples++;
-    }
-
-    var latencyText = attempt.RoundtripTimeMilliseconds?.ToString() ?? "-";
-    Console.WriteLine(
-        $"{attempt.TimestampDisplay} | {attempt.OutcomeDisplay,-7} | {latencyText,4} ms | {attempt.Details}");
+    case ["--version"]:
+        Console.WriteLine($"Ping Runner {version}");
+        return 0;
+    case ["speed", .. var rest]:
+        return await RunSpeedTestAsync(rest, cancellation.Token);
+    case []:
+        return await RunPingAsync(cancellation.Token);
+    default:
+        Console.Error.WriteLine("Usage: pingrunner [speed [seconds] [streams]] | --version");
+        return 2;
 }
 
-var averageLatencyText = latencySamples == 0
-    ? "-"
-    : $"{Math.Round((double)totalLatencyMilliseconds / latencySamples, 1):0.0} ms";
-var successRateText = sentCount == 0
-    ? "-"
-    : $"{(double)successCount / sentCount:P1}";
-
-Console.WriteLine();
-Console.WriteLine("Summary");
-Console.WriteLine($"Sent: {sentCount}");
-Console.WriteLine($"Success: {successCount}");
-Console.WriteLine($"Failure: {sentCount - successCount}");
-Console.WriteLine($"Average latency: {averageLatencyText}");
-Console.WriteLine($"Success rate: {successRateText}");
-
-static PingRunSettings BuildSettingsFromConsole()
+static async Task<int> RunPingAsync(CancellationToken cancellationToken)
 {
-    var targetHost = ReadRequiredString("Host or IP", "8.8.8.8");
-    var timeoutMilliseconds = ReadPositiveInt("Timeout in milliseconds", 1000);
-    var intervalMilliseconds = ReadPositiveInt("Interval in milliseconds", 1000);
-    var runForever = ReadYesNo("Run until stopped", true);
+    var settings = AskForSettings();
+    Console.WriteLine();
+    Console.WriteLine($"Pinging {settings.TargetHost}. Press Ctrl+C to stop.");
+    Console.WriteLine();
 
-    if (runForever)
+    var attempts = new List<PingAttempt>();
+    await foreach (var attempt in new PingLoop(new IcmpPingSender(), TimeProvider.System).RunAsync(settings, cancellationToken))
     {
-        return new PingRunSettings(targetHost, timeoutMilliseconds, intervalMilliseconds, null, true);
+        attempts.Add(attempt);
+        var latency = attempt.RoundtripMilliseconds is { } roundtrip ? $"{roundtrip,5} ms" : "  lost ";
+        Console.WriteLine($"{attempt.Timestamp:HH:mm:ss.fff}  {latency}  {attempt.Details}");
     }
 
-    var duration = ReadPositiveTimeSpan("Duration (hh:mm:ss)", "00:05:00");
-    return new PingRunSettings(targetHost, timeoutMilliseconds, intervalMilliseconds, duration, false);
+    var statistics = PingStatistics.From(attempts);
+    Console.WriteLine();
+    Console.WriteLine($"Sent {statistics.Sent}, received {statistics.Received}, lost {statistics.Lost} ({statistics.LossFraction:P1})");
+    if (statistics.Latency is { } spread)
+    {
+        Console.WriteLine($"Latency  min {spread.Minimum:0.0}  avg {spread.Mean:0.0}  median {spread.Median:0.0}  p95 {spread.Percentile(95):0.0}  max {spread.Maximum:0.0} ms");
+    }
+
+    Console.WriteLine($"Jitter   {statistics.JitterMilliseconds?.ToString("0.0", CultureInfo.CurrentCulture) ?? "-"} ms   outages {statistics.Outages.Count}   call quality {statistics.CallQuality?.MeanOpinionScore.ToString("0.0", CultureInfo.CurrentCulture) ?? "-"}");
+    return 0;
 }
 
-static string ReadRequiredString(string label, string defaultValue)
+static async Task<int> RunSpeedTestAsync(string[] options, CancellationToken cancellationToken)
+{
+    var seconds = options.Length > 0 && int.TryParse(options[0], out var s) ? s : 10;
+    var streams = options.Length > 1 && int.TryParse(options[1], out var n) ? n : 4;
+    using var http = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
+    var endpoint = new CloudflareSpeedEndpoint(http);
+    var runner = new SpeedTestRunner(endpoint, new IcmpPingSender(), TimeProvider.System);
+    var testOptions = new SpeedTestOptions { Throughput = ThroughputTestOptions.For(seconds, streams) };
+
+    Console.WriteLine($"Speed test against {endpoint.Name}: {testOptions.Throughput.Duration.TotalSeconds:0} s each way on {testOptions.Throughput.Streams} streams.");
+    var progress = new Progress<SpeedTestProgress>(report =>
+    {
+        if (report.Throughput is { } running)
+        {
+            Console.Write($"\r{report.Phase,-9} {running.Elapsed.TotalSeconds,5:0.0} s  {running.CurrentBitsPerSecond / 1e6,8:0.0} Mbps   ");
+        }
+    });
+
+    try
+    {
+        var result = await runner.RunAsync(testOptions, progress, cancellationToken);
+        Console.WriteLine();
+        Console.WriteLine($"Download  {result.Download.AverageBitsPerSecond / 1e6:0.0} Mbps (peak {result.Download.PeakBitsPerSecond / 1e6:0.0})");
+        Console.WriteLine($"Upload    {result.Upload.AverageBitsPerSecond / 1e6:0.0} Mbps (peak {result.Upload.PeakBitsPerSecond / 1e6:0.0})");
+        Console.WriteLine($"Latency   idle {result.IdleLatency?.Median:0.0} ms, loaded down {result.DownloadLatency?.Median:0.0} ms, up {result.UploadLatency?.Median:0.0} ms");
+        Console.WriteLine($"Bufferbloat {result.Bufferbloat?.GradeText ?? "-"}   data used {result.TotalBytes / 1e6:0} MB");
+        return 0;
+    }
+    catch (OperationCanceledException)
+    {
+        Console.WriteLine();
+        Console.WriteLine("Cancelled.");
+        return 1;
+    }
+    catch (Exception exception) when (exception is ThroughputTestException or HttpRequestException)
+    {
+        Console.WriteLine();
+        Console.Error.WriteLine(exception.Message);
+        return 1;
+    }
+}
+
+static PingRunSettings AskForSettings()
 {
     while (true)
     {
-        Console.Write($"{label} [{defaultValue}]: ");
-        var input = Console.ReadLine();
-        var value = string.IsNullOrWhiteSpace(input) ? defaultValue : input.Trim();
+        var host = Ask("Host or IP", "8.8.8.8");
+        var timeout = int.TryParse(Ask("Timeout in milliseconds", "1000"), out var t) ? t : -1;
+        var interval = int.TryParse(Ask("Interval in milliseconds", "1000"), out var i) ? i : -1;
+        var untilStopped = Ask("Run until stopped (y/n)", "y").StartsWith('y');
+        TimeSpan? duration = untilStopped
+            ? null
+            : TimeSpan.TryParse(Ask("Duration (hh:mm:ss)", "00:05:00"), CultureInfo.InvariantCulture, out var span) ? span : TimeSpan.Zero;
 
-        if (!string.IsNullOrWhiteSpace(value))
+        if (PingRunSettings.TryCreate(host, timeout, interval, duration, out var error) is { } settings)
         {
-            return value;
+            return settings;
         }
+
+        Console.WriteLine(error);
     }
 }
 
-static int ReadPositiveInt(string label, int defaultValue)
+static string Ask(string label, string fallback)
 {
-    while (true)
-    {
-        Console.Write($"{label} [{defaultValue}]: ");
-        var input = Console.ReadLine();
-
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            return defaultValue;
-        }
-
-        if (int.TryParse(input, out var value) && value > 0)
-        {
-            return value;
-        }
-
-        Console.WriteLine("Enter a positive integer.");
-    }
-}
-
-static bool ReadYesNo(string label, bool defaultValue)
-{
-    var defaultLabel = defaultValue ? "Y/n" : "y/N";
-
-    while (true)
-    {
-        Console.Write($"{label} [{defaultLabel}]: ");
-        var input = Console.ReadLine();
-
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            return defaultValue;
-        }
-
-        if (input.Equals("y", StringComparison.OrdinalIgnoreCase) ||
-            input.Equals("yes", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (input.Equals("n", StringComparison.OrdinalIgnoreCase) ||
-            input.Equals("no", StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        Console.WriteLine("Enter y or n.");
-    }
-}
-
-static TimeSpan ReadPositiveTimeSpan(string label, string defaultValue)
-{
-    while (true)
-    {
-        Console.Write($"{label} [{defaultValue}]: ");
-        var input = Console.ReadLine();
-        var value = string.IsNullOrWhiteSpace(input) ? defaultValue : input.Trim();
-
-        if (TimeSpan.TryParse(value, out var duration) && duration > TimeSpan.Zero)
-        {
-            return duration;
-        }
-
-        Console.WriteLine("Enter a positive time span such as 00:30:00.");
-    }
+    Console.Write($"{label} [{fallback}]: ");
+    var input = Console.ReadLine();
+    return string.IsNullOrWhiteSpace(input) ? fallback : input.Trim();
 }

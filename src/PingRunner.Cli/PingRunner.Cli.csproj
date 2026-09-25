@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PingRunner.Core\PingRunner.Core.csproj" />
+    <ProjectReference Include="..\PingRunner.Infrastructure\PingRunner.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
