@@ -24,7 +24,7 @@ public sealed class ThroughputTest(IThroughputEndpoint endpoint, TimeProvider ti
         void OnBytes(int count) => Interlocked.Add(ref total, count);
 
         var streams = Enumerable.Range(0, options.Streams)
-            .Select(_ => RunStreamAsync(direction, options.RequestBytes, OnBytes, transfer.Token))
+            .Select(_ => Task.Run(() => RunStreamAsync(direction, options.RequestBytes, OnBytes, transfer.Token), CancellationToken.None))
             .ToArray();
 
         try
@@ -61,9 +61,9 @@ public sealed class ThroughputTest(IThroughputEndpoint endpoint, TimeProvider ti
         return meter.ToResult(direction, options);
     }
 
+    // Streams run on the thread pool, so counting bytes never waits on (or for) a UI thread.
     private async Task RunStreamAsync(ThroughputDirection direction, long bytes, Action<int> onBytes, CancellationToken token)
     {
-        await Task.Yield();
         while (!token.IsCancellationRequested)
         {
             try

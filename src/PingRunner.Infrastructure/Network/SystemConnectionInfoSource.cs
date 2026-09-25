@@ -13,6 +13,19 @@ public sealed class SystemConnectionInfoSource : IConnectionInfoSource
 {
     public ConnectionSnapshot? GetPrimary()
     {
+        try
+        {
+            return ReadPrimary();
+        }
+        catch (NetworkInformationException)
+        {
+            // Windows could not list its adapters; show the offline state rather than fail.
+            return null;
+        }
+    }
+
+    private static ConnectionSnapshot? ReadPrimary()
+    {
         var primary = NetworkInterface.GetAllNetworkInterfaces()
             .Where(adapter => adapter.OperationalStatus == OperationalStatus.Up
                 && adapter.NetworkInterfaceType is not (NetworkInterfaceType.Loopback or NetworkInterfaceType.Tunnel))
