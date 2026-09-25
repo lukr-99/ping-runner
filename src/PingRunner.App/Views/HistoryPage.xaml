@@ -1,0 +1,215 @@
+<Page x:Class="PingRunner.App.Views.HistoryPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:controls="clr-namespace:PingRunner.App.Controls"
+      Title="History"
+      Foreground="{DynamicResource PR.TextPrimaryBrush}">
+    <Page.Resources>
+        <!-- A list row that lights up with the accent under the pointer. -->
+        <Style x:Key="Row" TargetType="Border">
+            <Setter Property="Padding" Value="16,6" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="Transparent" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource PR.AccentSoftBrush}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="IconAction" TargetType="ui:Button" BasedOn="{StaticResource PR.TonalButton}">
+            <Setter Property="Margin" Value="4,0,0,0" />
+            <Setter Property="Padding" Value="8,4" />
+        </Style>
+        <Style x:Key="Head" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource PR.TextSecondaryBrush}" />
+        </Style>
+    </Page.Resources>
+
+    <Grid Margin="{StaticResource PR.PagePadding}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:PageHeader Grid.Row="0" Icon="History24" Title="History" Subtitle="{Binding Summary}">
+            <controls:PageHeader.Actions>
+                <ui:Button Content="Refresh"
+                           Style="{StaticResource PR.TonalButton}"
+                           Icon="{ui:SymbolIcon ArrowClockwise24}"
+                           Command="{Binding RefreshCommand}" />
+            </controls:PageHeader.Actions>
+        </controls:PageHeader>
+
+        <ui:InfoBar Grid.Row="1"
+                    Margin="0,0,0,10"
+                    Title="History"
+                    Message="{Binding Problem}"
+                    Severity="Warning"
+                    IsClosable="False"
+                    IsOpen="{Binding HasProblem}" />
+
+        <TabControl Grid.Row="2" Background="Transparent" BorderThickness="0">
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock>
+                        <Run Text="Ping runs" />
+                        <Run Text="{Binding Runs.Count, Mode=OneWay}" Foreground="{DynamicResource PR.AccentBrush}" FontWeight="SemiBold" />
+                    </TextBlock>
+                </TabItem.Header>
+                <Border Margin="0,8,0,0" Style="{StaticResource PR.Card}" Padding="0,12,0,8">
+                    <DockPanel Grid.IsSharedSizeScope="True">
+                        <Grid DockPanel.Dock="Top" Margin="16,0,16,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition SharedSizeGroup="When" Width="190" />
+                                <ColumnDefinition SharedSizeGroup="Target" Width="150" />
+                                <ColumnDefinition SharedSizeGroup="Duration" Width="100" />
+                                <ColumnDefinition SharedSizeGroup="Pings" Width="70" />
+                                <ColumnDefinition SharedSizeGroup="Loss" Width="70" />
+                                <ColumnDefinition SharedSizeGroup="Average" Width="80" />
+                                <ColumnDefinition SharedSizeGroup="Jitter" Width="70" />
+                                <ColumnDefinition SharedSizeGroup="Outages" Width="70" />
+                                <ColumnDefinition SharedSizeGroup="Quality" Width="60" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Style="{StaticResource Head}" Text="Started" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource Head}" Text="Target" />
+                            <TextBlock Grid.Column="2" Style="{StaticResource Head}" Text="Duration" />
+                            <TextBlock Grid.Column="3" Style="{StaticResource Head}" Text="Pings" />
+                            <TextBlock Grid.Column="4" Style="{StaticResource Head}" Text="Loss" />
+                            <TextBlock Grid.Column="5" Style="{StaticResource Head}" Text="Average" />
+                            <TextBlock Grid.Column="6" Style="{StaticResource Head}" Text="Jitter" />
+                            <TextBlock Grid.Column="7" Style="{StaticResource Head}" Text="Outages" />
+                            <TextBlock Grid.Column="8" Style="{StaticResource Head}" Text="MOS" />
+                        </Grid>
+                        <TextBlock DockPanel.Dock="Top" Margin="16,8,16,0" Style="{StaticResource PR.Hint}"
+                                   Text="No runs yet. Every run you start on the Monitor page is saved here as it goes."
+                                   Visibility="{Binding Runs.Count, Converter={StaticResource ZeroToVisible}}" />
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding Runs}" Margin="0,0,4,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource Row}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition SharedSizeGroup="When" />
+                                                    <ColumnDefinition SharedSizeGroup="Target" />
+                                                    <ColumnDefinition SharedSizeGroup="Duration" />
+                                                    <ColumnDefinition SharedSizeGroup="Pings" />
+                                                    <ColumnDefinition SharedSizeGroup="Loss" />
+                                                    <ColumnDefinition SharedSizeGroup="Average" />
+                                                    <ColumnDefinition SharedSizeGroup="Jitter" />
+                                                    <ColumnDefinition SharedSizeGroup="Outages" />
+                                                    <ColumnDefinition SharedSizeGroup="Quality" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding When}" FontSize="13" />
+                                                    <TextBlock Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource PR.TextSecondaryBrush}" />
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="1" Text="{Binding Target}" Style="{StaticResource PR.AccentValue}" FontFamily="Consolas"
+                                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Grid.Column="2" Text="{Binding Duration}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="3" Text="{Binding Pings}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="4" Text="{Binding Loss}" Tag="{Binding LossSeverity}" Style="{StaticResource PR.SeverityValue}"
+                                                           VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="5" Text="{Binding Average}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="6" Text="{Binding Jitter}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="7" Text="{Binding Outages}" ToolTip="{Binding OutagesHint}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="8" Text="{Binding Quality}" Tag="{Binding QualitySeverity}" Style="{StaticResource PR.SeverityValue}"
+                                                           VerticalAlignment="Center" />
+                                                <StackPanel Grid.Column="9" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                    <ui:Button Style="{StaticResource IconAction}" Icon="{ui:SymbolIcon DataLine24}" ToolTip="Open in the Graph"
+                                                               Command="{Binding DataContext.OpenRunCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                               CommandParameter="{Binding}" />
+                                                    <ui:Button Style="{StaticResource IconAction}" Icon="{ui:SymbolIcon ArrowExportLtr24}" ToolTip="Export as CSV"
+                                                               Command="{Binding DataContext.ExportRunCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                               CommandParameter="{Binding}" />
+                                                    <ui:Button Style="{StaticResource IconAction}" Icon="{ui:SymbolIcon Delete24}" ToolTip="Delete this run"
+                                                               IsEnabled="{Binding IsFinished}"
+                                                               Command="{Binding DataContext.DeleteRunCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                               CommandParameter="{Binding}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+            </TabItem>
+
+            <TabItem>
+                <TabItem.Header>
+                    <TextBlock>
+                        <Run Text="Speed tests" />
+                        <Run Text="{Binding SpeedTests.Count, Mode=OneWay}" Foreground="{DynamicResource PR.AccentBrush}" FontWeight="SemiBold" />
+                    </TextBlock>
+                </TabItem.Header>
+                <Border Margin="0,8,0,0" Style="{StaticResource PR.Card}" Padding="0,12,0,8">
+                    <DockPanel Grid.IsSharedSizeScope="True">
+                        <Grid DockPanel.Dock="Top" Margin="16,0,16,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition SharedSizeGroup="When" Width="190" />
+                                <ColumnDefinition SharedSizeGroup="Down" Width="120" />
+                                <ColumnDefinition SharedSizeGroup="Up" Width="120" />
+                                <ColumnDefinition SharedSizeGroup="Idle" Width="90" />
+                                <ColumnDefinition SharedSizeGroup="Loaded" Width="170" />
+                                <ColumnDefinition SharedSizeGroup="Grade" Width="90" />
+                                <ColumnDefinition SharedSizeGroup="Data" Width="90" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Style="{StaticResource Head}" Text="Time" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource Head}" Text="Download" />
+                            <TextBlock Grid.Column="2" Style="{StaticResource Head}" Text="Upload" />
+                            <TextBlock Grid.Column="3" Style="{StaticResource Head}" Text="Idle" />
+                            <TextBlock Grid.Column="4" Style="{StaticResource Head}" Text="Under load (down / up)" />
+                            <TextBlock Grid.Column="5" Style="{StaticResource Head}" Text="Bufferbloat" />
+                            <TextBlock Grid.Column="6" Style="{StaticResource Head}" Text="Data used" />
+                        </Grid>
+                        <TextBlock DockPanel.Dock="Top" Margin="16,8,16,0" Style="{StaticResource PR.Hint}"
+                                   Text="No speed tests yet. Every test you run is saved here."
+                                   Visibility="{Binding SpeedTests.Count, Converter={StaticResource ZeroToVisible}}" />
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding SpeedTests}" Margin="0,0,4,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource Row}">
+                                            <Grid TextElement.FontSize="13">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition SharedSizeGroup="When" />
+                                                    <ColumnDefinition SharedSizeGroup="Down" />
+                                                    <ColumnDefinition SharedSizeGroup="Up" />
+                                                    <ColumnDefinition SharedSizeGroup="Idle" />
+                                                    <ColumnDefinition SharedSizeGroup="Loaded" />
+                                                    <ColumnDefinition SharedSizeGroup="Grade" />
+                                                    <ColumnDefinition SharedSizeGroup="Data" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding WhenLong}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="1" Text="{Binding DownloadShort}" Style="{StaticResource PR.AccentValue}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="2" Text="{Binding UploadShort}" Style="{StaticResource PR.AccentValue}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="3" Text="{Binding IdleLatency}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="4" Text="{Binding LoadedLatency}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="5" Text="{Binding Grade}" Tag="{Binding GradeSeverity}" Style="{StaticResource PR.SeverityValue}"
+                                                           FontWeight="SemiBold" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="6" Text="{Binding DataUsed}" Foreground="{DynamicResource PR.TextSecondaryBrush}" VerticalAlignment="Center" />
+                                                <ui:Button Grid.Column="7" HorizontalAlignment="Right" Style="{StaticResource IconAction}" Icon="{ui:SymbolIcon Delete24}"
+                                                           ToolTip="Delete this speed test"
+                                                           Command="{Binding DataContext.DeleteSpeedTestCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                           CommandParameter="{Binding}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Page>

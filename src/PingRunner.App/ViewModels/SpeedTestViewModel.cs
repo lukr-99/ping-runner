@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PingRunner.App.Composition;
 using PingRunner.App.Formatting;
+using PingRunner.Core.History;
 using PingRunner.Core.SpeedTest;
 using PingRunner.Core.Throughput;
 
@@ -11,12 +12,16 @@ namespace PingRunner.App.ViewModels;
 
 /// <summary>
 /// The Speed test page: runs idle latency, download and upload in turn, draws the rate live, then
-/// keeps the result at the top of this session's history.
+/// stores the result in the history and keeps the most recent ones on the page.
 /// </summary>
 public sealed partial class SpeedTestViewModel : ObservableObject
 {
+    public const int RecentCount = 20;
+
     private readonly SpeedTestRunner runner;
     private readonly SettingsState settings;
+    private readonly ISpeedTestHistory history;
+    private readonly HistoryChanges changes;
     private CancellationTokenSource? cancellation;
     private List<ThroughputPoint> download = [];
     private List<ThroughputPoint> upload = [];
@@ -53,19 +58,55 @@ public sealed partial class SpeedTestViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasError))]
     private string? error;
 
-    public SpeedTestViewModel(SpeedTestRunner runner, SettingsState settings, string serverName)
+    public SpeedTestViewModel(SpeedTestRunner runner, SettingsState settings, string serverName, ISpeedTestHistory history, HistoryChanges changes)
     {
         this.runner = runner;
         this.settings = settings;
+        this.history = history;
+        this.changes = changes;
         ServerName = serverName;
         testDuration = TimeSpan.FromSeconds(settings.Current.SpeedTestSeconds);
+        changes.Changed += async (_, _) =>
+        {
+            if (!IsRunning)
+            {
+                await LoadAsync().ConfigureAwait(true);
+            }
+        };
     }
 
     public string ServerName { get; }
 
     public bool HasError => Error is not null;
 
+    /// <summary>The most recent stored tests, newest first.</summary>
     public ObservableCollection<SpeedTestResultViewModel> History { get; } = [];
+
+    /// <summary>Shows the stored tests, the latest one in the result cards and the chart.</summary>
+    public async Task LoadAsync()
+    {
+        IReadOnlyList<SpeedTestRecord> stored;
+        try
+        {
+            stored = await history.ListAsync(CancellationToken.None).ConfigureAwait(true);
+        }
+        catch (HistoryException)
+        {
+            // The History page reports the problem; this page just starts empty.
+            return;
+        }
+
+        History.Clear();
+        foreach (var record in stored.Take(RecentCount))
+        {
+            History.Add(new SpeedTestResultViewModel(record.Result, record.Id));
+        }
+
+        if (!IsRunning)
+        {
+            ShowLatest(History.FirstOrDefault());
+        }
+    }
 
     public string DataHint => $"Each direction runs {settings.Current.SpeedTestSeconds} s on {settings.Current.SpeedTestStreams} parallel streams; a fast line can move several hundred MB.";
 
@@ -90,13 +131,25 @@ public sealed partial class SpeedTestViewModel : ObservableObject
         {
             var result = await runner.RunAsync(options, new Progress<SpeedTestProgress>(report => OnProgress(report, options)), cancellation.Token)
                 .ConfigureAwait(true);
-            Latest = new SpeedTestResultViewModel(result);
-            History.Insert(0, Latest);
-            DownloadPoints = Latest.DownloadSeries;
-            UploadPoints = Latest.UploadSeries;
-            PhaseText = $"Finished at {Latest.When}";
-            CurrentRate = Latest.DownloadAverage;
-            CurrentDirection = "Mbps down";
+            long? id = null;
+            try
+            {
+                id = await history.SaveAsync(result, CancellationToken.None).ConfigureAwait(true);
+            }
+            catch (HistoryException exception)
+            {
+                Error = $"The result could not be saved to the history: {exception.Message}";
+            }
+
+            var finished = new SpeedTestResultViewModel(result, id);
+            History.Insert(0, finished);
+            while (History.Count > RecentCount)
+            {
+                History.RemoveAt(History.Count - 1);
+            }
+
+            ShowLatest(finished);
+            PhaseText = $"Finished at {finished.When}";
             Progress = 1;
         }
         catch (OperationCanceledException)
@@ -116,10 +169,29 @@ public sealed partial class SpeedTestViewModel : ObservableObject
             cancellation = null;
             IsRunning = false;
         }
+
+        changes.Raise();
     }
 
     [RelayCommand(CanExecute = nameof(IsRunning))]
     private void Cancel() => cancellation?.Cancel();
+
+    private void ShowLatest(SpeedTestResultViewModel? result)
+    {
+        Latest = result;
+        if (result is null)
+        {
+            return;
+        }
+
+        TestDuration = result.Result.Download.Duration > TimeSpan.Zero ? result.Result.Download.Duration : TestDuration;
+        DownloadPoints = result.DownloadSeries;
+        UploadPoints = result.UploadSeries;
+        CurrentRate = result.DownloadAverage;
+        CurrentDirection = "Mbps down";
+        PhaseText = $"Last test: {result.WhenLong}";
+        Progress = 1;
+    }
 
     private void OnProgress(SpeedTestProgress report, SpeedTestOptions options)
     {

@@ -10,8 +10,13 @@ dotnet format PingRunner.slnx --verify-no-changes
 dotnet build PingRunner.slnx -c Release
 dotnet test --solution PingRunner.slnx -c Release
 python tools/validate_repository.py --root .
+python tools/migrations.py test src/PingRunner.Infrastructure/History/Migrations
 pwsh ./tools/test-powershell-syntax.ps1
 ```
+
+To change the history schema, add the next migration file (`python tools/migrations.py new
+src/PingRunner.Infrastructure/History/Migrations add_something`) and test it from its predecessor with
+representative rows: `python tools/migrations.py test <folder> --migration NNNN --fixture <rows.sql>`.
 
 Warnings fail the build, and code style is checked during the build. The tests need the .NET 10 SDK
 and nothing else. `tools/validate_repository.py`, `tools/migrations.py` and

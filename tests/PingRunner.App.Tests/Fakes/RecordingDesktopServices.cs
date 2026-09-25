@@ -15,11 +15,22 @@ public sealed class RecordingDesktopServices : IDesktopServices
 
     public List<(string Title, string Message)> Errors { get; } = [];
 
+    /// <summary>What every confirmation answers.</summary>
+    public bool ConfirmAnswer { get; set; } = true;
+
+    public List<string> Confirmations { get; } = [];
+
     public string? PickFileToOpen(string title, string filter) => FileToOpen;
 
     public string? PickFileToSave(string title, string filter, string suggestedName) => FileToSave;
 
     public void ShowError(string title, string message) => Errors.Add((title, message));
+
+    public bool Confirm(string title, string message)
+    {
+        Confirmations.Add(title);
+        return ConfirmAnswer;
+    }
 
     public void CopyText(string text) => Copied.Add(text);
 

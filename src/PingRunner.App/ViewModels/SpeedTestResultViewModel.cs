@@ -5,12 +5,17 @@ using PingRunner.Core.Throughput;
 
 namespace PingRunner.App.ViewModels;
 
-/// <summary>A finished speed test written out for the result cards and the history list.</summary>
-public sealed class SpeedTestResultViewModel(SpeedTestResult result)
+/// <summary>A finished speed test written out for the result cards and the history lists.</summary>
+public sealed class SpeedTestResultViewModel(SpeedTestResult result, long? id = null)
 {
+    /// <summary>The stored test's id; null when it could not be stored.</summary>
+    public long? Id { get; } = id;
+
     public SpeedTestResult Result { get; } = result;
 
     public string When { get; } = result.StartedAt.ToLocalTime().ToString("HH:mm:ss", CultureInfo.CurrentCulture);
+
+    public string WhenLong { get; } = result.StartedAt.ToLocalTime().ToString("ddd d MMM yyyy, HH:mm", CultureInfo.CurrentCulture);
 
     public string DownloadAverage { get; } = Units.MegabitsNumber(result.Download.AverageBitsPerSecond);
 

@@ -14,6 +14,9 @@ public interface IDesktopServices
 
     void ShowError(string title, string message);
 
+    /// <summary>Asks before something that cannot be undone; true to go ahead.</summary>
+    bool Confirm(string title, string message);
+
     void CopyText(string text);
 
     /// <summary>Opens a web page or a folder with its default handler; only ever after a user click.</summary>

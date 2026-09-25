@@ -64,6 +64,11 @@ public static class Units
 
     public static string Count(int count) => count.ToString("N0", Culture);
 
+    public static string Count(long count) => count.ToString("N0", Culture);
+
+    /// <summary>"1 speed test", "12 speed tests".</summary>
+    public static string CountOf(long count, string one, string many) => $"{Count(count)} {(count == 1 ? one : many)}";
+
     public static string LinkSpeed(long? bitsPerSecond) => bitsPerSecond switch
     {
         null => None,

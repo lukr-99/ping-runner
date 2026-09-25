@@ -54,8 +54,16 @@ up when the page opens and stays hidden until you show it.
 
 ![The Connection page in dark mode](docs/assets/connection-dark.png)
 
+**History.** Every ping run, with every ping in it, and every speed test, kept until you delete them.
+A run is saved while it goes, every 50 pings or 5 seconds, so a crash loses at most a few seconds; a
+run left open that way is marked "Interrupted" the next time the app starts. Open a run in the Graph,
+export it as CSV, or delete it.
+
+![The History page listing four stored runs, one still running](docs/assets/history-light.png)
+
 **Settings.** Light, dark or Windows theme, four accent colors, how many pings the live session keeps
-(10,000 to 500,000), speed-test length and streams, and an update check.
+(10,000 to 500,000), speed-test length and streams, backup, restore and clearing of the history, and an
+update check.
 
 There is also a console version: `pingrunner` asks for a host and prints each ping and a summary, and
 `pingrunner speed [seconds] [streams]` runs the speed test.
@@ -104,13 +112,21 @@ to, and [CONTEXT.md](CONTEXT.md) for what each measurement means.
 
 ## Data safety
 
-Ping Runner stores one file, `settings.json`, in `%LOCALAPPDATA%\PingRunner` (`PingRunner Dev` for
-`-dev` builds). It holds appearance, the last ping form and recent targets, with a `Version` field for
-later migrations. A settings file that cannot be read is kept as `settings.unreadable.json` and the app
-starts on defaults. Deleting the folder resets the app; uninstalling leaves it.
+Ping Runner keeps two files in `%LOCALAPPDATA%\PingRunner` (`PingRunner Dev` for `-dev` builds).
+Uninstalling leaves the folder; deleting it resets the app.
 
-Ping sessions live in memory only. To keep one, export it from the Graph page as CSV; importing the
-file brings it back. The CSV format is the one 1.x wrote, so old exports still open.
+- `settings.json` holds appearance, the last ping form and recent targets, with a `Version` field for
+  later migrations. A settings file that cannot be read is kept as `settings.unreadable.json` and the
+  app starts on defaults.
+- `history.db` (SQLite) holds every ping run with its pings and every speed test. Its schema changes
+  only through numbered migration files, and a history written by a newer Ping Runner is left alone
+  rather than opened. A file SQLite cannot read is set aside as `history.unreadable-<time>.db` and a
+  new history starts.
+
+Back up the history from Settings: it writes a complete copy to a file you choose. Restore checks that
+the file is a readable Ping Runner history before it replaces anything and keeps the previous one as
+`history.before-restore.db`. A single run can also go out as CSV, in the format 1.x wrote, and CSV files
+open in the Graph.
 
 ## Delivery
 

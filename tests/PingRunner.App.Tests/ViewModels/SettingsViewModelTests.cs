@@ -57,6 +57,55 @@ public sealed class SettingsViewModelTests
     });
 
     [Fact]
+    public Task RestoreHistory_Declined_ChangesNothing() => WpfHost.RunAsync(async () =>
+    {
+        using var app = TestApp.Create();
+        app.Desktop.FileToOpen = @"D:\backups\history.db";
+        app.Desktop.ConfirmAnswer = false;
+
+        await app.Graph.SettingsPage.RestoreHistoryCommand.ExecuteAsync(null);
+
+        Assert.Empty(app.History.RestoredFrom);
+    });
+
+    [Fact]
+    public Task RestoreHistory_Confirmed_RestoresAndSaysWhat() => WpfHost.RunAsync(async () =>
+    {
+        using var app = TestApp.Create();
+        await app.SeedHistoryAsync();
+        app.Desktop.FileToOpen = @"D:\backups\history.db";
+
+        await app.Graph.SettingsPage.RestoreHistoryCommand.ExecuteAsync(null);
+
+        Assert.Equal([@"D:\backups\history.db"], app.History.RestoredFrom);
+        Assert.Equal("Restored 3 ping runs and 0 speed tests from history.db.", app.Graph.SettingsPage.HistoryStatus);
+    });
+
+    [Fact]
+    public Task ClearHistory_Confirmed_EmptiesIt() => WpfHost.RunAsync(async () =>
+    {
+        using var app = TestApp.Create();
+        await app.SeedHistoryAsync();
+
+        await app.Graph.SettingsPage.ClearHistoryCommand.ExecuteAsync(null);
+        await app.Graph.SettingsPage.RefreshHistoryAsync();
+
+        Assert.Empty(await app.Runs.ListRunsAsync(CancellationToken.None));
+        Assert.StartsWith("0 ping runs", app.Graph.SettingsPage.HistoryText, StringComparison.Ordinal);
+    });
+
+    [Fact]
+    public Task BackupHistory_WritesWhereAsked() => WpfHost.RunAsync(async () =>
+    {
+        using var app = TestApp.Create();
+        app.Desktop.FileToSave = @"D:\backups\ping.db";
+
+        await app.Graph.SettingsPage.BackupHistoryCommand.ExecuteAsync(null);
+
+        Assert.Equal([@"D:\backups\ping.db"], app.History.BackedUpTo);
+    });
+
+    [Fact]
     public Task CheckForUpdates_NothingPublished_SaysSo() => WpfHost.RunAsync(async () =>
     {
         using var app = TestApp.Create();

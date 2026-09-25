@@ -5,8 +5,8 @@ using PingRunner.App.Views;
 namespace PingRunner.App.Shell;
 
 /// <summary>
-/// The one window: a left navigation pane over the Monitor, Graph, Speed test, Connection and Settings
-/// pages, built from the composition root. Dev builds say so in the title.
+/// The one window: a left navigation pane over the Monitor, Graph, Speed test, Connection, History and
+/// Settings pages, built from the composition root. Dev builds say so in the title.
 /// </summary>
 public partial class MainWindow
 {
@@ -27,6 +27,7 @@ public partial class MainWindow
             [typeof(GraphPage)] = () => new GraphPage(graph.Graph),
             [typeof(SpeedTestPage)] = () => new SpeedTestPage(graph.SpeedTest),
             [typeof(ConnectionPage)] = () => new ConnectionPage(graph.Connection),
+            [typeof(HistoryPage)] = () => new HistoryPage(graph.History),
             [typeof(SettingsPage)] = () => new SettingsPage(graph.SettingsPage),
         }));
 
@@ -41,6 +42,7 @@ public partial class MainWindow
             AppPage.Graph => typeof(GraphPage),
             AppPage.SpeedTest => typeof(SpeedTestPage),
             AppPage.Connection => typeof(ConnectionPage),
+            AppPage.History => typeof(HistoryPage),
             AppPage.Settings => typeof(SettingsPage),
             _ => typeof(MonitorPage),
         };

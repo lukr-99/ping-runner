@@ -32,6 +32,15 @@ public sealed class WpfDesktopServices : IDesktopServices
         }
     }
 
+    public bool Confirm(string title, string message)
+    {
+        var owner = Application.Current?.MainWindow;
+        var answer = owner is null
+            ? MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No)
+            : MessageBox.Show(owner, message, title, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+        return answer == MessageBoxResult.Yes;
+    }
+
     public void CopyText(string text) => Clipboard.SetText(text);
 
     public void Open(string target) => Process.Start(new ProcessStartInfo(target) { UseShellExecute = true })?.Dispose();

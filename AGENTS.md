@@ -20,6 +20,10 @@ Ping Runner follows the CodePrint repository rules (`lukr-99/CodePrint`, `RULES.
   clipboard and opening links go through `IDesktopServices`.
 - Views use the `PR.*` brushes only, through `DynamicResource`. No literal colors in XAML or in the
   charts.
+- The history schema changes only by adding the next `NNNN_description.sql` under
+  `src/PingRunner.Infrastructure/History/Migrations`. Never edit, rename or renumber an applied file:
+  its SHA-256 is checked against every database. A new migration also needs a test from the
+  previous version with representative rows.
 - Tests stay deterministic: `FakeTimeProvider` for time, stub HTTP handlers, temporary folders, and no
   network beyond loopback. WPF tests join the `WPF` collection and run through `WpfHost`.
 - Conventional Commits, one coherent change each, with its tests and docs. Add user-visible changes to
@@ -33,5 +37,6 @@ dotnet format PingRunner.slnx --verify-no-changes
 dotnet build PingRunner.slnx -c Release
 dotnet test --solution PingRunner.slnx -c Release
 python tools/validate_repository.py --root .
+python tools/migrations.py test src/PingRunner.Infrastructure/History/Migrations
 pwsh ./tools/test-powershell-syntax.ps1
 ```

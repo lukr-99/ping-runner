@@ -15,6 +15,9 @@ switched on for this repository yet.
 - **Imported CSV files.** Treated as untrusted. Every row is parsed and checked (timestamp, host
   length, boolean, non-negative round-trip time), lines over 4,096 characters and files over 2,000,000
   rows are refused, and a bad row fails the whole import with its line number.
+- **History backups.** A file chosen for restore is untrusted: a copy of it must have Ping Runner's
+  tables, pass SQLite's integrity and foreign-key checks before and after migrating, and list no
+  migration this build does not know. Only then does it replace the history; the old one is kept.
 - **`settings.json`.** Read as untrusted too. Unknown fields are ignored, every value is clamped to its
   range, and a file that does not parse is set aside and replaced by defaults.
 - **Network answers.** The public IP must parse as an IP address. The GitHub release must have a
@@ -35,5 +38,7 @@ switched on for this repository yet.
 
 - A broken settings file: the app keeps a copy as `settings.unreadable.json` and starts on defaults.
   Deleting `%LOCALAPPDATA%\PingRunner` resets everything.
+- A broken history file is set aside as `history.unreadable-<time>.db` and a new history starts. A bad
+  restore can be undone by restoring `history.before-restore.db`.
 - A crash writes `crash.log` to the same folder and names it in the error message.
 - A bad release: install the previous release's installer over it. Settings stay where they are.
