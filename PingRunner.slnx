@@ -6,6 +6,7 @@
     <Project Path="src/PingRunner.Infrastructure/PingRunner.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/PingRunner.App.Tests/PingRunner.App.Tests.csproj" />
     <Project Path="tests/PingRunner.Core.Tests/PingRunner.Core.Tests.csproj" />
     <Project Path="tests/PingRunner.Infrastructure.Tests/PingRunner.Infrastructure.Tests.csproj" />
   </Folder>

@@ -7,12 +7,23 @@
     <RootNamespace>PingRunner.App</RootNamespace>
     <AssemblyName>PingRunner</AssemblyName>
     <Title>Ping Runner</Title>
-    <Description>Desktop ping runner with live graphing, CSV import/export, and long-session analysis.</Description>
+    <Description>Watch a connection's latency, jitter, packet loss and outages live, and measure its throughput.</Description>
     <ApplicationIcon>Assets\PingRunner.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <AssemblyMetadata Include="PingRunner.ReleaseBuild" Value="$(PingRunnerReleaseBuild)" />
+    <InternalsVisibleTo Include="PingRunner.App.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PingRunner.Core\PingRunner.Core.csproj" />
+    <ProjectReference Include="..\PingRunner.Infrastructure\PingRunner.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>

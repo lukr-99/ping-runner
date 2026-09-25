@@ -1,0 +1,161 @@
+<Page x:Class="PingRunner.App.Views.SettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      Title="Settings"
+      Foreground="{DynamicResource PR.TextPrimaryBrush}">
+    <Page.Resources>
+        <Style x:Key="Row" TargetType="DockPanel">
+            <Setter Property="Margin" Value="0,6" />
+            <Setter Property="LastChildFill" Value="True" />
+        </Style>
+        <Style x:Key="RowLabel" TargetType="StackPanel">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,16,0" />
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="{StaticResource PR.PagePadding}" MaxWidth="760" HorizontalAlignment="Left">
+            <TextBlock Style="{StaticResource PR.PageTitle}" Text="Settings" />
+            <TextBlock Style="{StaticResource PR.PageSubtitle}" Margin="0,2,0,12" Text="Saved as you change them." />
+
+            <Border Style="{StaticResource PR.Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource PR.SectionLabel}" Text="APPEARANCE" />
+                    <DockPanel Style="{StaticResource Row}">
+                        <ComboBox DockPanel.Dock="Right" Width="220" ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}" />
+                        <StackPanel Style="{StaticResource RowLabel}">
+                            <TextBlock Style="{StaticResource PR.Body}" Text="Theme" />
+                            <TextBlock Style="{StaticResource PR.Hint}" Text="Light, dark, or follow Windows." />
+                        </StackPanel>
+                    </DockPanel>
+                    <DockPanel Style="{StaticResource Row}">
+                        <ListBox DockPanel.Dock="Right"
+                                 ItemsSource="{Binding Accents}"
+                                 SelectedItem="{Binding SelectedAccent}"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Cursor" Value="Hand" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border Background="Transparent" Padding="2,4">
+                                                    <ContentPresenter />
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Width="56" ToolTip="{Binding Label}">
+                                        <Grid Width="34" Height="34" HorizontalAlignment="Center">
+                                            <Ellipse Stroke="{DynamicResource PR.TextPrimaryBrush}" StrokeThickness="2"
+                                                     Visibility="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}, Converter={StaticResource BoolToVisibility}}" />
+                                            <Ellipse Width="24" Height="24" Fill="{Binding Swatch}" />
+                                        </Grid>
+                                        <TextBlock Margin="0,4,0,0" Text="{Binding Label}" FontSize="11" HorizontalAlignment="Center"
+                                                   Foreground="{DynamicResource PR.TextSecondaryBrush}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <StackPanel Style="{StaticResource RowLabel}">
+                            <TextBlock Style="{StaticResource PR.Body}" Text="Accent" />
+                            <TextBlock Style="{StaticResource PR.Hint}" Text="Lines, buttons and highlights." />
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Margin="0,12,0,0" Style="{StaticResource PR.Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource PR.SectionLabel}" Text="MONITOR" />
+                    <DockPanel Style="{StaticResource Row}">
+                        <ComboBox DockPanel.Dock="Right" Width="220" ItemsSource="{Binding Capacities}" SelectedItem="{Binding SelectedCapacity}" />
+                        <StackPanel Style="{StaticResource RowLabel}">
+                            <TextBlock Style="{StaticResource PR.Body}" Text="Keep in the live session" />
+                            <TextBlock Style="{StaticResource PR.Hint}" Text="Older pings drop off. Export from the Graph page to keep a long run." />
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Margin="0,12,0,0" Style="{StaticResource PR.Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource PR.SectionLabel}" Text="SPEED TEST" />
+                    <DockPanel Style="{StaticResource Row}">
+                        <ComboBox DockPanel.Dock="Right" Width="220" ItemsSource="{Binding SpeedTestLengths}" SelectedItem="{Binding SelectedSpeedTestSeconds}" />
+                        <StackPanel Style="{StaticResource RowLabel}">
+                            <TextBlock Style="{StaticResource PR.Body}" Text="Length" />
+                            <TextBlock Style="{StaticResource PR.Hint}" Text="Longer tests settle better on fast or busy lines." />
+                        </StackPanel>
+                    </DockPanel>
+                    <DockPanel Style="{StaticResource Row}">
+                        <ComboBox DockPanel.Dock="Right" Width="220" ItemsSource="{Binding SpeedTestStreamCounts}" SelectedItem="{Binding SelectedSpeedTestStreams}" />
+                        <StackPanel Style="{StaticResource RowLabel}">
+                            <TextBlock Style="{StaticResource PR.Body}" Text="Streams" />
+                            <TextBlock Style="{StaticResource PR.Hint}" Text="Several connections fill a fast line; one shows a single download's speed." />
+                        </StackPanel>
+                    </DockPanel>
+                    <TextBlock Margin="0,6,0,0" Style="{StaticResource PR.Hint}"
+                               Text="Tests use Cloudflare's public speed-test service (speed.cloudflare.com) and ping 1.1.1.1 for latency." />
+                </StackPanel>
+            </Border>
+
+            <Border Margin="0,12,0,0" Style="{StaticResource PR.Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource PR.SectionLabel}" Text="UPDATES" />
+                    <DockPanel Style="{StaticResource Row}">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <ui:Button Content="Check for updates" Icon="{ui:SymbolIcon ArrowSync24}" Command="{Binding CheckForUpdatesCommand}" />
+                            <ui:Button Margin="6,0,0,0" Content="Open release" Icon="{ui:SymbolIcon Open24}" Appearance="Primary"
+                                       Command="{Binding OpenReleaseCommand}"
+                                       Visibility="{Binding HasRelease, Converter={StaticResource BoolToVisibility}}" />
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource RowLabel}">
+                            <TextBlock Style="{StaticResource PR.Body}">
+                                <Run Text="Ping Runner" />
+                                <Run Text="{Binding Version, Mode=OneWay}" FontWeight="SemiBold" />
+                            </TextBlock>
+                            <TextBlock Style="{StaticResource PR.Hint}" Text="{Binding UpdateText}" />
+                        </StackPanel>
+                    </DockPanel>
+                    <TextBlock Margin="0,4,0,0" Style="{StaticResource PR.Hint}"
+                               Text="Checks GitHub Releases only when you ask. Installing stays your choice: the button opens the release page." />
+                </StackPanel>
+            </Border>
+
+            <Border Margin="0,12,0,0" Style="{StaticResource PR.Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource PR.SectionLabel}" Text="ABOUT" />
+                    <TextBlock Style="{StaticResource PR.Body}" Text="{Binding BuildKind}" />
+                    <DockPanel Style="{StaticResource Row}">
+                        <ui:Button DockPanel.Dock="Right" Content="Open folder" Icon="{ui:SymbolIcon FolderOpen24}" Command="{Binding OpenDataFolderCommand}" />
+                        <StackPanel Style="{StaticResource RowLabel}">
+                            <TextBlock Style="{StaticResource PR.Body}" Text="Settings folder" />
+                            <TextBlock Style="{StaticResource PR.Hint}" FontFamily="Consolas" Text="{Binding DataFolder}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </DockPanel>
+                    <DockPanel Style="{StaticResource Row}">
+                        <ui:Button DockPanel.Dock="Right" Content="GitHub" Icon="{ui:SymbolIcon Globe24}" Command="{Binding OpenRepositoryCommand}" />
+                        <StackPanel Style="{StaticResource RowLabel}">
+                            <TextBlock Style="{StaticResource PR.Body}" Text="Source and releases" />
+                            <TextBlock Style="{StaticResource PR.Hint}" Text="Free for personal and non-commercial use under the PolyForm Noncommercial License 1.0.0." />
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
