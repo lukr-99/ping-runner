@@ -22,6 +22,25 @@ _Avoid_: log
 Every run and speed test stored on this computer, kept until deleted. A stored run is a **run record**.
 _Avoid_: log, archive
 
+**Imported run**:
+A stored run read from a file instead of recorded by pinging. It keeps the file's name; its interval
+is the usual gap between its attempts.
+_Avoid_: uploaded run, external run
+
+**Report**:
+A document about one set of attempts for someone who was not there: figures, findings, charts, tables
+and how it was measured, as PDF or Excel.
+_Avoid_: export (an export is the raw attempts), summary (the clipboard text)
+
+**Finding**:
+One sentence of a report that states what the attempts show, with the numbers, and judges no further.
+_Avoid_: diagnosis, verdict
+
+**Slice**:
+One clock-aligned stretch of a report's period (a minute to a day, whatever keeps a report to 48 of
+them) with its own figures. `ReportBucket` in code.
+_Avoid_: interval (that is the gap between pings), window
+
 **Interrupted run**:
 A stored run the app never finished because it or the computer went down; closed at the next start
 with the attempts that had been saved.

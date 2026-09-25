@@ -17,6 +17,8 @@ pwsh ./tools/test-powershell-syntax.ps1
 To change the history schema, add the next migration file (`python tools/migrations.py new
 src/PingRunner.Infrastructure/History/Migrations add_something`) and test it from its predecessor with
 representative rows: `python tools/migrations.py test <folder> --migration NNNN --fixture <rows.sql>`.
+Keep the fixture in `tests/PingRunner.Infrastructure.Tests/History/Fixtures`, add the command to CI, and
+add a `SqliteMigratorTests` case that migrates the same rows.
 
 Warnings fail the build, and code style is checked during the build. The tests need the .NET 10 SDK
 and nothing else. `tools/validate_repository.py`, `tools/migrations.py` and
@@ -33,7 +35,8 @@ $env:PINGRUNNER_SCREENSHOTS = "$PWD\artifacts\screenshots"
 dotnet test --project tests\PingRunner.App.Tests -c Release
 ```
 
-Copy the ones you need into `docs/assets/` and describe them in the image alt text.
+Copy the ones you need into `docs/assets/` and describe them in the image alt text. The same variable
+makes `ReportChartRendererTests` write the report charts and a sample PDF and Excel report.
 
 ## Change shape
 

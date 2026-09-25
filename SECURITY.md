@@ -12,9 +12,14 @@ switched on for this repository yet.
 
 ## Trust boundaries
 
-- **Imported CSV files.** Treated as untrusted. Every row is parsed and checked (timestamp, host
-  length, boolean, non-negative round-trip time), lines over 4,096 characters and files over 2,000,000
-  rows are refused, and a bad row fails the whole import with its line number.
+- **Imported files.** CSV files and Excel workbooks are untrusted. Every row is parsed and checked
+  (time, host length, result, a round-trip time from 0 to 10 minutes); a row that fails is left out and
+  listed with its line number, never half-read. Lines over 4,096 characters are skipped, files over
+  2,000,000 pings and workbooks over 200 MB are refused, and a file with no readable pings is refused
+  with the reason. Workbook formulas are read by their saved value and never calculated, and macros in
+  `.xlsm` files are never run.
+- **Reports.** A report holds what you chose to put in it. The public IP address stays out unless you
+  tick it; adapter MAC addresses are never included. Reports are written only to the file you pick.
 - **History backups.** A file chosen for restore is untrusted: a copy of it must have Ping Runner's
   tables, pass SQLite's integrity and foreign-key checks before and after migrating, and list no
   migration this build does not know. Only then does it replace the history; the old one is kept.
@@ -25,7 +30,8 @@ switched on for this repository yet.
   parsed.
 - **Opening links.** The app hands the browser only three kinds of address, and only when you click:
   the release page from the update check, the repository, and `http://<gateway>/`, which it builds from
-  the gateway's parsed IP address and nothing else.
+  the gateway's parsed IP address and nothing else. It also opens a report you just saved, or its
+  folder, when you press Open or Show in folder.
 - **Updates.** The app never downloads or runs an update. The update check reads the latest published
   release and opens its page in the browser when you ask it to.
 - **Installer.** Per-user, no administrator rights. Releases publish a SHA-256 checksum beside the
