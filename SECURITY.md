@@ -20,6 +20,9 @@ switched on for this repository yet.
 - **Network answers.** The public IP must parse as an IP address. The GitHub release must have a
   version tag and a `https://github.com` page. The Cloudflare transfers are only counted, never
   parsed.
+- **Opening links.** The app hands the browser only three kinds of address, and only when you click:
+  the release page from the update check, the repository, and `http://<gateway>/`, which it builds from
+  the gateway's parsed IP address and nothing else.
 - **Updates.** The app never downloads or runs an update. The update check reads the latest published
   release and opens its page in the browser when you ask it to.
 - **Installer.** Per-user, no administrator rights. Releases publish a SHA-256 checksum beside the

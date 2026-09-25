@@ -8,8 +8,8 @@ using PingRunner.Core.Network;
 namespace PingRunner.App.ViewModels;
 
 /// <summary>
-/// The Connection page: the adapter carrying the default route, its gateway and DNS servers, and the
-/// public address. The public address is looked up only when this page asks, and stays hidden until
+/// The Connection page: the adapter carrying the default route, its gateway (with a shortcut to the
+/// router's admin page) and DNS servers, and the public address. The public address is looked up only when this page asks, and stays hidden until
 /// shown, so it never lands in a screenshot by accident.
 /// </summary>
 public sealed partial class ConnectionViewModel(
@@ -41,7 +41,8 @@ public sealed partial class ConnectionViewModel(
     private string localAddresses = Units.None;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(PingGatewayCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PingGatewayCommand), nameof(OpenRouterCommand))]
+    [NotifyPropertyChangedFor(nameof(RouterHint))]
     private string? gateway;
 
     [ObservableProperty]
@@ -64,6 +65,11 @@ public sealed partial class ConnectionViewModel(
     public IReadOnlyList<QuickTarget> QuickTargets => QuickTarget.Defaults;
 
     public string PublicIpToggleText => IsPublicIpVisible ? "Hide" : "Show";
+
+    /// <summary>What "Open router" will open, for its tooltip.</summary>
+    public string RouterHint => RouterAdminPage.UrlFor(Gateway) is { } url
+        ? $"Open your router's admin page ({url.AbsoluteUri}) in the browser"
+        : "No gateway to open";
 
     /// <summary>Loads everything the first time the page opens.</summary>
     public async Task EnsureLoadedAsync()
@@ -127,6 +133,16 @@ public sealed partial class ConnectionViewModel(
     [RelayCommand(CanExecute = nameof(HasDnsServer))]
     private void PingDns() => PingHost(FirstDnsServer);
 
+    /// <summary>Opens the router's admin page in the default browser.</summary>
+    [RelayCommand(CanExecute = nameof(CanOpenRouter))]
+    private void OpenRouter()
+    {
+        if (RouterAdminPage.UrlFor(Gateway) is { } url)
+        {
+            desktop.Open(url.AbsoluteUri);
+        }
+    }
+
     [RelayCommand]
     private void PingHost(string? host)
     {
@@ -142,6 +158,8 @@ public sealed partial class ConnectionViewModel(
     private bool HasGateway() => Gateway is not null;
 
     private bool HasDnsServer() => FirstDnsServer is not null;
+
+    private bool CanOpenRouter() => RouterAdminPage.UrlFor(Gateway) is not null;
 
     private void ShowPublicIp() => PublicIpText = publicAddress switch
     {

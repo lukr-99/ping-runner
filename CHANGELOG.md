@@ -6,6 +6,10 @@ release's number; the section moves from `[Unreleased]` to that number in the re
 
 ## [Unreleased]
 
+### Added
+
+- "Open router" on the Connection page opens the gateway's admin page in the browser.
+
 ## [2.0.0] - 2026-09-25
 
 ### Added

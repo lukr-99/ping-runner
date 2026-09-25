@@ -47,7 +47,8 @@ are in Settings. A test on a fast line moves several hundred megabytes.
 ![A finished speed test: 443 Mbps down, 38.7 Mbps up, bufferbloat A+](docs/assets/speedtest-light.png)
 
 **Connection.** The adapter that carries the default route: type, link speed, local addresses, gateway
-and DNS servers, each with a button that fills in the Monitor. Ping the gateway first. Loss there
+and DNS servers, each with a button that fills in the Monitor. "Open router" opens the gateway's admin
+page (`http://<gateway>/`) in your browser. Ping the gateway first. Loss there
 points at Wi-Fi or cabling; loss only to public hosts points past the router. The public IP is looked
 up when the page opens and stays hidden until you show it.
 
