@@ -3,8 +3,10 @@
     <Project Path="src/PingRunner.App/PingRunner.App.csproj" />
     <Project Path="src/PingRunner.Cli/PingRunner.Cli.csproj" />
     <Project Path="src/PingRunner.Core/PingRunner.Core.csproj" />
+    <Project Path="src/PingRunner.Infrastructure/PingRunner.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PingRunner.Core.Tests/PingRunner.Core.Tests.csproj" />
+    <Project Path="tests/PingRunner.Infrastructure.Tests/PingRunner.Infrastructure.Tests.csproj" />
   </Folder>
 </Solution>

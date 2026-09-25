@@ -1,0 +1,19 @@
+{
+  "url": "https://api.github.com/repos/lukr-99/ping-runner/releases/1",
+  "html_url": "https://github.com/lukr-99/ping-runner/releases/tag/v2.1.0",
+  "id": 1,
+  "tag_name": "v2.1.0",
+  "target_commitish": "main",
+  "name": "Ping Runner 2.1.0",
+  "draft": false,
+  "prerelease": false,
+  "created_at": "2026-10-01T09:00:00Z",
+  "published_at": "2026-10-01T09:05:00Z",
+  "assets": [
+    {
+      "name": "PingRunner-2.1.0-setup.exe",
+      "browser_download_url": "https://github.com/lukr-99/ping-runner/releases/download/v2.1.0/PingRunner-2.1.0-setup.exe"
+    }
+  ],
+  "body": "Sample release for tests."
+}
