@@ -8,10 +8,9 @@ runs a speed test that also measures how much a full line slows everything else 
 
 ## Status
 
-Version 2.0.0 is ready for release but not tagged yet. It replaces the 1.x window and pop-up graph
-with one window and five pages. Local builds report themselves as `2.0.0-dev`. Version 1.1.0 was
-never published as a GitHub Release; it was installed with the old `install.ps1`, and the 2.0
-installer removes that copy.
+Version 2.0.0 is the current release and the first one published on GitHub. It replaces the 1.x window
+and pop-up graph with one window and five pages. Local builds report themselves as `2.0.0-dev`.
+Version 1.1.0 was installed with the old `install.ps1`; the 2.0 installer removes that copy.
 
 ## What it shows
 

@@ -6,7 +6,7 @@ release's number; the section moves from `[Unreleased]` to that number in the re
 
 ## [Unreleased]
 
-Everything below ships as 2.0.0.
+## [2.0.0] - 2026-09-25
 
 ### Added
 

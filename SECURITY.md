@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Only the latest release gets fixes. No release is published on GitHub yet; 2.0.0 will be the first.
+Only the latest release gets fixes. 2.0.0 is the first release published on GitHub.
 
 ## Reporting
 
