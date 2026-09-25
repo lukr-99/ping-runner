@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using PingRunner.App.Desktop;
 using PingRunner.Core.Formatting;
 using PingRunner.Core.Graphing;
+using PingRunner.Core.Importing;
 using PingRunner.Core.Pinging;
 using PingRunner.Core.Sessions;
 using PingRunner.Core.Statistics;
@@ -111,7 +112,7 @@ public sealed partial class GraphViewModel : ObservableObject
             var stream = File.OpenRead(path);
             await using (stream.ConfigureAwait(true))
             {
-                attempts = await PingAttemptCsv.ImportAsync(stream).ConfigureAwait(true);
+                attempts = (await new PingCsvReader().ReadAsync(stream, Path.GetFileName(path), CancellationToken.None).ConfigureAwait(true)).Attempts;
             }
 
             ShowAttempts(attempts, $"Imported · {Path.GetFileName(path)}");
