@@ -8,9 +8,9 @@ runs a speed test that also measures how much a full line slows everything else 
 
 ## Status
 
-Version 2.2.0 is in development: reports as PDF and Excel, and imports from spreadsheets and other
-tools into the History. Version 2.1.0 is the current release; it added the History page and a shortcut
-to your router's admin page. Local builds report themselves as `2.2.0-dev`. Update from Settings:
+Version 2.2.0 is the current release. It adds reports as PDF and Excel, and imports from spreadsheets
+and other tools into the History. Version 2.1.0 added the History page and a shortcut to your router's
+admin page. Local builds report themselves as `2.2.0-dev`. Update from Settings:
 "Check for updates" opens the release page, and the new installer replaces the old version in place,
 keeping settings and history.
 

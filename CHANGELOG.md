@@ -6,6 +6,8 @@ release's number; the section moves from `[Unreleased]` to that number in the re
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-09-26
+
 ### Added
 
 - Reports: a new Reports page makes a PDF to hand over or an Excel workbook to work with, from the
