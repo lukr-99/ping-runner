@@ -1,10 +1,12 @@
 using System.Windows;
 using System.Windows.Threading;
 using PingRunner.App.Desktop;
+using PingRunner.App.Reports;
 using PingRunner.App.Shell;
 using PingRunner.App.Theming;
 using PingRunner.App.ViewModels;
 using PingRunner.Core.History;
+using PingRunner.Core.Importing;
 using PingRunner.Core.Pinging;
 using PingRunner.Core.Sessions;
 using PingRunner.Core.SpeedTest;
@@ -40,14 +42,30 @@ public sealed class AppGraph : IDisposable
         HistoryChanges = new HistoryChanges();
         Recorder = new RunRecorder(Session, adapters.PingRuns, time);
 
+        var importer = new PingFileImporter(adapters.FileReaders);
         Monitor = new MonitorViewModel(Session, Settings, time, desktop, build.Version.ToString());
-        Graph = new GraphViewModel(Session, desktop);
+        Graph = new GraphViewModel(Session, importer, desktop);
         SpeedTest = new SpeedTestViewModel(
             new SpeedTestRunner(adapters.SpeedEndpoint, adapters.Pinger, time), Settings, adapters.SpeedEndpoint.Name, adapters.SpeedTests, HistoryChanges);
-        History = new HistoryViewModel(adapters.PingRuns, adapters.SpeedTests, adapters.History, Graph, Navigation, desktop, HistoryChanges);
+        Reports = new ReportsViewModel(
+            new ReportSources(Session, Graph, adapters.PingRuns, adapters.SpeedTests, adapters.Connections, adapters.PublicIp),
+            adapters.ReportWriters,
+            new ReportChartRenderer(),
+            Settings,
+            time,
+            build.Version.ToString(),
+            desktop,
+            HistoryChanges);
+        History = new HistoryViewModel(adapters.PingRuns, adapters.SpeedTests, adapters.History, importer, Graph, Reports, Navigation, desktop, HistoryChanges);
         Connection = new ConnectionViewModel(adapters.Connections, adapters.PublicIp, Monitor, Navigation, desktop);
         SettingsPage = new SettingsViewModel(
             Settings, Theme, Session, new UpdateCheck(adapters.Releases, build.Version), build, adapters.DataFolder, desktop, adapters.History, HistoryChanges);
+
+        Graph.ReportRequested += async (_, _) =>
+        {
+            await Reports.SelectGraphAsync().ConfigureAwait(true);
+            Navigation.Open(AppPage.Reports);
+        };
 
         // Every run lands in the history; runs a crash left open are closed first.
         Recorder.RunSaved += (_, _) => HistoryChanges.Raise();
@@ -81,6 +99,8 @@ public sealed class AppGraph : IDisposable
     public MonitorViewModel Monitor { get; }
 
     public GraphViewModel Graph { get; }
+
+    public ReportsViewModel Reports { get; }
 
     public SpeedTestViewModel SpeedTest { get; }
 

@@ -16,6 +16,9 @@ public partial class GraphPage
         this.viewModel = viewModel;
         InitializeComponent();
         DataContext = viewModel;
+
+        // The export menu opens in a popup outside the page's tree, so it gets the view model directly.
+        ExportMenu.DataContext = viewModel;
         Loaded += (_, _) => viewModel.Refresh();
     }
 

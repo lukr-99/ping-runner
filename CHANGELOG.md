@@ -6,6 +6,26 @@ release's number; the section moves from `[Unreleased]` to that number in the re
 
 ## [Unreleased]
 
+### Added
+
+- Reports: a new Reports page makes a PDF to hand over or an Excel workbook to work with, from the
+  live session, what the Graph shows, a stored run, or everything stored for a target between two
+  dates. A report has the key figures, findings in plain words, charts (latency over time with lost
+  pings and outages marked, loss per slice of time, how replies were spread, speed tests), a table
+  over time, every outage, the speed tests in the period, the connection details and how it was all
+  measured. A title and notes (a ticket number, an address) go on the front. The public IP address
+  stays out unless you tick it. The workbook has a sheet per table with real numbers, and every ping.
+- Import ping files into the History: each target in the file becomes a stored run, marked with the
+  file it came from, ready for the Graph and for reports.
+- A Report button on each run in the History, and on the Graph for what it shows.
+
+### Changed
+
+- Import reads Excel workbooks, and CSV files that a spreadsheet saved again or another tool wrote:
+  semicolons or tabs, renamed or reordered columns, local date formats, decimal commas and a UTC
+  offset column. Rows that cannot be read are left out and listed, instead of failing the file.
+- The Graph's CSV and PNG exports are under one Export menu, next to Import and Report.
+
 ## [2.1.0] - 2026-09-25
 
 ### Added

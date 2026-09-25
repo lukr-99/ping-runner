@@ -13,15 +13,14 @@ using PingRunner.Core.Statistics;
 namespace PingRunner.App.ViewModels;
 
 /// <summary>
-/// The Graph page: the live session, a stored run or an imported CSV, narrowed to a range, then zoomed and panned
-/// on the chart. The statistics strip always describes exactly what is on screen, and exports can
-/// take either the visible part or the whole source.
+/// The Graph page: the live session, a stored run or an imported file (CSV or Excel), narrowed to a
+/// range, then zoomed and panned on the chart. The statistics strip always describes exactly what is
+/// on screen, and exports can take either the visible part or the whole source.
 /// </summary>
 public sealed partial class GraphViewModel : ObservableObject
 {
-    private const string CsvFilter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
-
     private readonly PingSession session;
+    private readonly PingFileImporter importer;
     private readonly IDesktopServices desktop;
     private IReadOnlyList<PingAttempt>? imported;
     private string? importedLabel;
@@ -49,15 +48,39 @@ public sealed partial class GraphViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(UseLiveDataCommand))]
     private bool isImported;
 
-    public GraphViewModel(PingSession session, IDesktopServices desktop)
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasNotice))]
+    private string? notice;
+
+    public GraphViewModel(PingSession session, PingFileImporter importer, IDesktopServices desktop)
     {
         this.session = session;
+        this.importer = importer;
         this.desktop = desktop;
         session.AttemptRecorded += (_, _) => dirty = true;
         session.StateChanged += (_, _) => dirty = true;
     }
 
+    /// <summary>Asks for a report on what the Graph shows; the composition root takes it to the Reports page.</summary>
+    public event EventHandler? ReportRequested;
+
     public IReadOnlyList<GraphRange> Ranges => GraphRange.Presets;
+
+    /// <summary>Whether the notice shows; closing it clears it.</summary>
+    public bool HasNotice
+    {
+        get => Notice is not null;
+        set
+        {
+            if (!value)
+            {
+                Notice = null;
+            }
+        }
+    }
+
+    /// <summary>Every ping of the current source, whatever range or zoom is on screen.</summary>
+    public IReadOnlyList<PingAttempt> SourceAttempts() => Source();
 
     /// <summary>Rebuilds the view when the live session changed since the last call.</summary>
     public void Refresh()
@@ -108,14 +131,15 @@ public sealed partial class GraphViewModel : ObservableObject
     {
         try
         {
-            IReadOnlyList<PingAttempt> attempts;
+            PingImport import;
             var stream = File.OpenRead(path);
             await using (stream.ConfigureAwait(true))
             {
-                attempts = (await new PingCsvReader().ReadAsync(stream, Path.GetFileName(path), CancellationToken.None).ConfigureAwait(true)).Attempts;
+                import = await importer.ReadAsync(stream, path, CancellationToken.None).ConfigureAwait(true);
             }
 
-            ShowAttempts(attempts, $"Imported · {Path.GetFileName(path)}");
+            ShowAttempts(import.Attempts, $"Imported · {import.SourceName}");
+            Notice = import.Describe();
         }
         catch (Exception exception) when (exception is IOException or InvalidDataException or UnauthorizedAccessException)
         {
@@ -130,6 +154,7 @@ public sealed partial class GraphViewModel : ObservableObject
         imported = attempts;
         importedLabel = label;
         IsImported = true;
+        Notice = null;
         Zoom = GraphZoom.None;
         if (SelectedRange == GraphRange.Everything)
         {
@@ -152,7 +177,7 @@ public sealed partial class GraphViewModel : ObservableObject
     [RelayCommand]
     private async Task ImportAsync()
     {
-        if (desktop.PickFileToOpen("Import ping data", CsvFilter) is { } path)
+        if (desktop.PickFileToOpen("Import ping data", importer.FileFilter) is { } path)
         {
             await ImportFromAsync(path).ConfigureAwait(true);
         }
@@ -164,12 +189,16 @@ public sealed partial class GraphViewModel : ObservableObject
     [RelayCommand]
     private Task ExportAllAsync() => ExportAsync(Source(), "all");
 
+    [RelayCommand]
+    private void RequestReport() => ReportRequested?.Invoke(this, EventArgs.Empty);
+
     [RelayCommand(CanExecute = nameof(IsImported))]
     private void UseLiveData()
     {
         imported = null;
         importedLabel = null;
         IsImported = false;
+        Notice = null;
         Zoom = GraphZoom.None;
         Rebuild();
     }
@@ -195,7 +224,7 @@ public sealed partial class GraphViewModel : ObservableObject
         Stats = StatisticsDisplay.From(PingStatistics.From(visible));
         var total = imported?.Count ?? session.Attempts.Count;
         ViewText = visible.Count == 0
-            ? imported is null ? "No pings yet. Start a run on the Monitor page, open one from History, or import a CSV." : "There are no pings to show."
+            ? imported is null ? "No pings yet. Start a run on the Monitor page, open one from History, or import a file." : "There are no pings to show."
             : $"Showing {Units.Count(visible.Count)} of {Units.Count(total)} pings · {visible[0].Timestamp.ToLocalTime():HH:mm:ss} – {visible[^1].Timestamp.ToLocalTime():HH:mm:ss}";
     }
 

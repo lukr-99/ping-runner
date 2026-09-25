@@ -57,6 +57,11 @@
                         <ui:SymbolIcon Symbol="History24" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="Reports" TargetPageType="{x:Type views:ReportsPage}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="DocumentPdf24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
             </ui:NavigationView.MenuItems>
             <ui:NavigationView.FooterMenuItems>
                 <ui:NavigationViewItem Content="Settings" TargetPageType="{x:Type views:SettingsPage}">

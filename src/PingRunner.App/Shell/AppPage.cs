@@ -7,5 +7,6 @@ public enum AppPage
     SpeedTest,
     Connection,
     History,
+    Reports,
     Settings,
 }
