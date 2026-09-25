@@ -1,0 +1,282 @@
+<Window x:Class="PingRunner.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Ping Runner"
+        Icon="Assets/PingRunner.ico"
+        Height="720"
+        Width="1180"
+        MinHeight="640"
+        MinWidth="980">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Padding="16"
+                CornerRadius="10"
+                Background="#FF101B2D">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock Foreground="White"
+                               FontSize="28"
+                               FontWeight="SemiBold"
+                               Text="Ping Runner" />
+                    <TextBlock Margin="0,6,0,0"
+                               Foreground="#FFD7E2F2"
+                               FontSize="14"
+                               Text="Run finite or infinite ping loops against any host or IP, with live latency and failure tracking." />
+                    <StackPanel Margin="0,10,0,0"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <TextBlock Foreground="#FF9EB7D4"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Text="Current IP:" />
+                        <TextBlock Margin="8,0,10,0"
+                                   Foreground="#FFF4F7FB"
+                                   FontSize="13"
+                                   Text="{Binding CurrentIpDisplay}" />
+                        <Button Padding="10,4"
+                                Background="#22324B"
+                                Foreground="White"
+                                BorderBrush="#335172"
+                                Click="ToggleCurrentIpButton_OnClick"
+                                Content="{Binding CurrentIpToggleText}"
+                                IsEnabled="{Binding CanToggleCurrentIp}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <Border Grid.Column="1"
+                        Padding="12,8"
+                        Background="#22324B"
+                        CornerRadius="8"
+                        VerticalAlignment="Center">
+                    <TextBlock Foreground="#FFF4F7FB"
+                               FontSize="14"
+                               FontWeight="Medium"
+                               Text="{Binding StatusText}" />
+                </Border>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1"
+                Margin="0,16,0,12"
+                Padding="16"
+                CornerRadius="10"
+                BorderBrush="#FFD0D7E2"
+                BorderThickness="1"
+                Background="#FFF7F9FC">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,0">
+                    <TextBlock FontWeight="SemiBold" Text="Target host or IP" />
+                    <TextBox Margin="0,6,0,0"
+                             Padding="8"
+                             FontSize="14"
+                             Text="{Binding TargetHost, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,12,0">
+                    <TextBlock FontWeight="SemiBold" Text="Timeout (ms)" />
+                    <TextBox Margin="0,6,0,0"
+                             Padding="8"
+                             FontSize="14"
+                             Text="{Binding TimeoutMilliseconds, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,12,0">
+                    <TextBlock FontWeight="SemiBold" Text="Interval (ms)" />
+                    <TextBox Margin="0,6,0,0"
+                             Padding="8"
+                             FontSize="14"
+                             Text="{Binding IntervalMilliseconds, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="0" Grid.Column="3" Margin="0,0,12,0">
+                    <TextBlock FontWeight="SemiBold" Text="Duration (hh:mm:ss)" />
+                    <TextBox Margin="0,6,0,0"
+                             Padding="8"
+                             FontSize="14"
+                             Text="{Binding DurationText, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="0"
+                            Grid.Column="4"
+                            Margin="0,24,12,0"
+                            VerticalAlignment="Center">
+                    <CheckBox Content="Run until stopped"
+                              FontWeight="SemiBold"
+                              IsChecked="{Binding RunForever}" />
+                </StackPanel>
+
+                <Button Grid.Row="0"
+                        Grid.Column="5"
+                        Width="110"
+                        Height="42"
+                        Margin="0,22,12,0"
+                        Background="#FF0F766E"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Click="StartButton_OnClick"
+                        Content="Start"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        IsEnabled="{Binding CanStart}" />
+
+                <Button Grid.Row="0"
+                        Grid.Column="6"
+                        Width="110"
+                        Height="42"
+                        Margin="0,22,0,0"
+                        Background="#FFB42318"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Click="StopButton_OnClick"
+                        Content="Stop"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        IsEnabled="{Binding CanStop}" />
+
+                <Button Grid.Row="0"
+                        Grid.Column="7"
+                        Width="110"
+                        Height="42"
+                        Margin="12,22,0,0"
+                        Background="#FF24549A"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Click="GraphButton_OnClick"
+                        Content="Graph"
+                        FontSize="14"
+                        FontWeight="SemiBold" />
+
+                <TextBlock Grid.Row="1"
+                           Grid.Column="0"
+                           Grid.ColumnSpan="8"
+                           Margin="0,14,0,0"
+                           Foreground="#FF516074"
+                           Text="Tip: when 'Run until stopped' is checked, the duration value is ignored. Example duration: 00:30:00 for thirty minutes." />
+            </Grid>
+        </Border>
+
+        <UniformGrid Grid.Row="2"
+                     Margin="0,0,0,12"
+                     Columns="4">
+            <Border Margin="0,0,12,0"
+                    Padding="14"
+                    CornerRadius="10"
+                    Background="#FFEFF6FF"
+                    BorderBrush="#FFB6D4FE"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Foreground="#FF24549A" FontWeight="SemiBold" Text="Sent" />
+                    <TextBlock Margin="0,8,0,0"
+                               FontSize="28"
+                               FontWeight="SemiBold"
+                               Text="{Binding SentCount}" />
+                </StackPanel>
+            </Border>
+
+            <Border Margin="0,0,12,0"
+                    Padding="14"
+                    CornerRadius="10"
+                    Background="#FFF1FAF5"
+                    BorderBrush="#FFA6F4C5"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Foreground="#FF067647" FontWeight="SemiBold" Text="Success / Failure" />
+                    <TextBlock Margin="0,8,0,0"
+                               FontSize="28"
+                               FontWeight="SemiBold"
+                               Text="{Binding SuccessFailureSummary}" />
+                </StackPanel>
+            </Border>
+
+            <Border Margin="0,0,12,0"
+                    Padding="14"
+                    CornerRadius="10"
+                    Background="#FFFFFAEB"
+                    BorderBrush="#FFFEC84B"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Foreground="#FFB54708" FontWeight="SemiBold" Text="Average Latency" />
+                    <TextBlock Margin="0,8,0,0"
+                               FontSize="28"
+                               FontWeight="SemiBold"
+                               Text="{Binding AverageLatencyText}" />
+                </StackPanel>
+            </Border>
+
+            <Border Padding="14"
+                    CornerRadius="10"
+                    Background="#FFFDF2FA"
+                    BorderBrush="#FFEEA9D7"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Foreground="#FFC11574" FontWeight="SemiBold" Text="Success Rate" />
+                    <TextBlock Margin="0,8,0,0"
+                               FontSize="28"
+                               FontWeight="SemiBold"
+                               Text="{Binding SuccessRateText}" />
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <DataGrid Grid.Row="3"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  HeadersVisibility="Column"
+                  IsReadOnly="True"
+                  ItemsSource="{Binding PingAttempts}"
+                  RowHeaderWidth="0"
+                  AlternatingRowBackground="#FFF8FAFC"
+                  GridLinesVisibility="Horizontal"
+                  BorderBrush="#FFD0D7E2"
+                  BorderThickness="1">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding TimestampDisplay}"
+                                    Header="Timestamp"
+                                    Width="170" />
+                <DataGridTextColumn Binding="{Binding TargetHost}"
+                                    Header="Target"
+                                    Width="*" />
+                <DataGridTextColumn Binding="{Binding OutcomeDisplay}"
+                                    Header="Outcome"
+                                    Width="120" />
+                <DataGridTextColumn Binding="{Binding RoundtripDisplay}"
+                                    Header="Latency (ms)"
+                                    Width="120" />
+                <DataGridTextColumn Binding="{Binding Details}"
+                                    Header="Details"
+                                    Width="2*" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>

@@ -8,28 +8,28 @@ Ping Runner is a small .NET ping utility with:
 
 ## Projects
 
-- `PingerTool` - the desktop app
-- `PingerTool.Core` - shared ping models and ping loop service
-- `PingerTool.TryApp` - the console entry point
+- `src/PingRunner.App` - the desktop app
+- `src/PingRunner.Core` - shared ping models and ping loop service
+- `src/PingRunner.Cli` - the console entry point
 
 ## Run
 
 Build the solution:
 
 ```powershell
-dotnet build Playground.sln -c Release
+dotnet build PingRunner.slnx -c Release
 ```
 
 Run the desktop app:
 
 ```powershell
-dotnet run --project PingerTool\PingerTool.csproj
+dotnet run --project src\PingRunner.App\PingRunner.App.csproj
 ```
 
 Run the console app:
 
 ```powershell
-dotnet run --project PingerTool.TryApp\PingerTool.TryApp.csproj
+dotnet run --project src\PingRunner.Cli\PingRunner.Cli.csproj
 ```
 
 ## Install
@@ -37,7 +37,7 @@ dotnet run --project PingerTool.TryApp\PingerTool.TryApp.csproj
 The desktop app includes an installer script:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\PingerTool\install.ps1
+powershell -ExecutionPolicy Bypass -File .\src\PingRunner.App\install.ps1
 ```
 
 That publishes a self-contained Windows build to `%LOCALAPPDATA%\Programs\PingRunner\<version>`, records the active version in `%LOCALAPPDATA%\Programs\PingRunner\current-version.txt`, and creates a Start Menu shortcut.
@@ -45,14 +45,14 @@ That publishes a self-contained Windows build to `%LOCALAPPDATA%\Programs\PingRu
 Reinstall the currently selected version in place:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\PingerTool\install.ps1 -Reinstall
+powershell -ExecutionPolicy Bypass -File .\src\PingRunner.App\install.ps1 -Reinstall
 ```
 
 Install a new version while keeping older version folders, then optionally remove older versions:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\PingerTool\install.ps1
-powershell -ExecutionPolicy Bypass -File .\PingerTool\install.ps1 -Reinstall -PruneOldVersions
+powershell -ExecutionPolicy Bypass -File .\src\PingRunner.App\install.ps1
+powershell -ExecutionPolicy Bypass -File .\src\PingRunner.App\install.ps1 -Reinstall -PruneOldVersions
 ```
 
 ## UI notes

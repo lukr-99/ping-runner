@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>PingRunner.App</RootNamespace>
+    <AssemblyName>PingRunner</AssemblyName>
+    <Title>Ping Runner</Title>
+    <Description>Desktop ping runner with live graphing, CSV import/export, and long-session analysis.</Description>
+    <ApplicationIcon>Assets\PingRunner.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PingRunner.Core\PingRunner.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\PingRunner.ico" />
+    <Resource Include="Assets\PingRunner.png" />
+  </ItemGroup>
+
+</Project>

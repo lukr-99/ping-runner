@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PingRunner.App/PingRunner.App.csproj" />
+    <Project Path="src/PingRunner.Cli/PingRunner.Cli.csproj" />
+    <Project Path="src/PingRunner.Core/PingRunner.Core.csproj" />
+  </Folder>
+</Solution>
