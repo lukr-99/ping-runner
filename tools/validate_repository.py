@@ -6,11 +6,18 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 from migrations import MigrationError, discover_migrations
+
+
+if sys.version_info < (3, 11):
+    sys.exit(
+        f"CodePrint tools need Python 3.11 or newer, but this is {sys.version.split()[0]}."
+    )
 
 
 TEXT_EXTENSIONS = {
@@ -94,8 +101,29 @@ def _matches_any(path: Path, patterns: Iterable[str]) -> bool:
     return any(normalized.match(pattern) for pattern in patterns)
 
 
+def _git_files(root: Path) -> list[Path] | None:
+    """Tracked and untracked files that Git does not ignore, or None outside a Git work tree."""
+
+    try:
+        result = subprocess.run(
+            ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+            cwd=root,
+            check=False,
+            capture_output=True,
+        )
+    except OSError:
+        return None
+    if result.returncode != 0:
+        return None
+    names = result.stdout.decode("utf-8").split("\0")
+    return [root / name for name in names if name]
+
+
 def _iter_files(root: Path) -> Iterable[Path]:
-    for path in root.rglob("*"):
+    # Inside a Git work tree, gitignored build output such as an installer's publish folder is
+    # never checked; elsewhere only the generated folder names above are skipped.
+    candidates = _git_files(root)
+    for path in sorted(set(candidates)) if candidates is not None else root.rglob("*"):
         if not path.is_file():
             continue
         relative = path.relative_to(root)
