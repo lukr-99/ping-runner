@@ -5,6 +5,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$prefix = $repositoryRoot.TrimEnd([char[]]@('\', '/')) + [System.IO.Path]::DirectorySeparatorChar
 $scripts = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
 
 if (-not $Roots) {
@@ -15,7 +16,6 @@ if (-not $Roots) {
 
 foreach ($rootValue in $Roots) {
     $root = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $rootValue))
-    $prefix = $repositoryRoot.TrimEnd([char[]]@('\', '/')) + [System.IO.Path]::DirectorySeparatorChar
     $isRepositoryRoot = $root.Equals($repositoryRoot, [StringComparison]::OrdinalIgnoreCase)
     if (-not $isRepositoryRoot -and -not $root.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) {
         throw "Syntax-check root must remain under the repository: $root"
@@ -37,7 +37,9 @@ foreach ($script in $scripts | Sort-Object FullName -Unique) {
         [ref]$tokens,
         [ref]$parseErrors
     ) | Out-Null
-    $relative = [System.IO.Path]::GetRelativePath($repositoryRoot, $script.FullName)
+    # Path.GetRelativePath does not exist in .NET Framework, so it throws under Windows PowerShell 5.1.
+    # Every script sits under the repository root, so cut that prefix off instead.
+    $relative = $script.FullName.Substring($prefix.Length)
     foreach ($parseError in $parseErrors) {
         $syntaxErrors.Add("$relative`:$($parseError.Extent.StartLineNumber): $($parseError.Message)")
     }
