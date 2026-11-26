@@ -17,6 +17,8 @@
     <PackageReference Include="ClosedXML" Version="0.105.1" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" />
     <PackageReference Include="PDFsharp-MigraDoc" Version="6.2.4" />
+    <!-- ClosedXML pulls in 8.0.1, which carries known vulnerabilities (GHSA-846f-f764-76mx, GHSA-2fmv-rv2c-59x7). -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.15" />
   </ItemGroup>
 
   <ItemGroup>
