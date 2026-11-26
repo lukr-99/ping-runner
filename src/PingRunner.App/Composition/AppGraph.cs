@@ -5,6 +5,7 @@ using PingRunner.App.Reports;
 using PingRunner.App.Shell;
 using PingRunner.App.Theming;
 using PingRunner.App.ViewModels;
+using PingRunner.Core.About;
 using PingRunner.Core.History;
 using PingRunner.Core.Importing;
 using PingRunner.Core.Pinging;
@@ -60,6 +61,7 @@ public sealed class AppGraph : IDisposable
         Connection = new ConnectionViewModel(adapters.Connections, adapters.PublicIp, Monitor, Navigation, desktop);
         SettingsPage = new SettingsViewModel(
             Settings, Theme, Session, new UpdateCheck(adapters.Releases, build.Version), build, adapters.DataFolder, desktop, adapters.History, HistoryChanges);
+        About = new AboutViewModel(AboutContent.Current, build, adapters.DataFolder, desktop);
 
         Graph.ReportRequested += async (_, _) =>
         {
@@ -107,6 +109,8 @@ public sealed class AppGraph : IDisposable
     public ConnectionViewModel Connection { get; }
 
     public SettingsViewModel SettingsPage { get; }
+
+    public AboutViewModel About { get; }
 
     /// <summary>What the refresh tick does; callable directly where no tick runs.</summary>
     public void RefreshPages()
