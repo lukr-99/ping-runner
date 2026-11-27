@@ -6,7 +6,7 @@ namespace PingRunner.App.Shell;
 
 /// <summary>
 /// The one window: a left navigation pane over the Monitor, Graph, Speed test, Connection, History,
-/// Reports and Settings pages, built from the composition root. Dev builds say so in the title.
+/// Reports, Settings and About pages, built from the composition root. Dev builds say so in the title.
 /// </summary>
 public partial class MainWindow
 {
@@ -30,6 +30,7 @@ public partial class MainWindow
             [typeof(HistoryPage)] = () => new HistoryPage(graph.History),
             [typeof(ReportsPage)] = () => new ReportsPage(graph.Reports),
             [typeof(SettingsPage)] = () => new SettingsPage(graph.SettingsPage),
+            [typeof(AboutPage)] = () => new AboutPage(graph.About),
         }));
 
         graph.Navigation.Requested += (_, page) => Open(page);
@@ -46,6 +47,7 @@ public partial class MainWindow
             AppPage.History => typeof(HistoryPage),
             AppPage.Reports => typeof(ReportsPage),
             AppPage.Settings => typeof(SettingsPage),
+            AppPage.About => typeof(AboutPage),
             _ => typeof(MonitorPage),
         };
         NavigateWhenReady();

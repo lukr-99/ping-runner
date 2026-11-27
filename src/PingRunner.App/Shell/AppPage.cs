@@ -9,4 +9,5 @@ public enum AppPage
     History,
     Reports,
     Settings,
+    About,
 }

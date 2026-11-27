@@ -6,6 +6,14 @@ release's number; the section moves from `[Unreleased]` to that number in the re
 
 ## [Unreleased]
 
+### Added
+
+- An About page in the navigation pane: version and build, who made Ping Runner, where to send feedback and bug reports, what stays on your computer and what goes online, and credits and licences.
+
+### Fixed
+
+- Builds no longer fail on a known vulnerability in a library that ClosedXML brings in; it is now updated.
+
 ## [2.2.0] - 2026-09-26
 
 ### Added
