@@ -8,13 +8,28 @@ runs a speed test that also measures how much a full line slows everything else 
 
 ## Status
 
-Version 2.2.0 is the current release. It adds reports as PDF and Excel, and imports from spreadsheets
-and other tools into the History. Version 2.1.0 added the History page and a shortcut to your router's
-admin page. Local builds report themselves as `2.2.0-dev`. Update from Settings:
-"Check for updates" opens the release page, and the new installer replaces the old version in place,
-keeping settings and history.
+Version 2.2.0, released 2026-09-26, is the current release. It adds reports as PDF and Excel and
+imports from spreadsheets and other tools' ping logs into the History. Version 2.1.0 added the History
+page and a shortcut to your router's admin page. Local builds report themselves as `2.2.0-dev`.
+
+To update, use "Check for updates" in Settings. It opens the release page, and the new installer
+replaces the old version in place, keeping your settings and history.
+
+## Features
+
+- Live Monitor: latency, jitter, packet loss, outages and an estimated call-quality score.
+- Graph with zoom, pan and export as CSV or PNG.
+- Speed test against Cloudflare with a bufferbloat grade.
+- Connection page with your adapter, gateway, DNS servers and an "Open router" shortcut.
+- History: every run and speed test is kept on your computer until you delete it.
+- Reports as PDF or Excel, for a support ticket or anyone who was not there.
+- Import of Ping Runner CSV files, other tools' ping logs and Excel workbooks.
+- Light, dark or Windows theme with four accent colors.
+- A console version, `pingrunner`.
 
 ## What it shows
+
+The pages in detail.
 
 **Monitor.** Enter a host or IP, pick an interval, a timeout and how long to run, and start. Eight
 figures update a few times a second:
@@ -43,8 +58,8 @@ everything as CSV, or the chart and its figures as PNG, or make a report of what
 **Speed test.** Ten pings on an idle line, then ten seconds of download and ten of upload over four
 parallel streams against Cloudflare's speed-test service, pinging 1.1.1.1 the whole time. The result
 has the average rate and the best rate held for a full second, both leaving out the first second
-while TCP ramps up, idle latency, latency under load and a bufferbloat grade from A+ to F. Length and stream count
-are in Settings. A test on a fast line moves several hundred megabytes.
+while TCP ramps up, idle latency, latency under load and a bufferbloat grade from A+ to F. Length and
+stream count are in Settings. A test on a fast line moves several hundred megabytes.
 
 ![A finished speed test: 443 Mbps down, 38.7 Mbps up, bufferbloat A+](docs/assets/speedtest-light.png)
 
@@ -107,7 +122,7 @@ installs for the current user only, without administrator rights, to
 may warn before it runs.
 
 ```powershell
-(Get-FileHash .\PingRunner-2.0.0-setup.exe -Algorithm SHA256).Hash.ToLower()
+(Get-FileHash .\PingRunner-2.2.0-setup.exe -Algorithm SHA256).Hash.ToLower()
 ```
 
 To build the installer yourself, see [Delivery](#delivery).
@@ -158,11 +173,11 @@ The version lives in [Version.props](Version.props). Every build is `-dev` unles
 `-p:PingRunnerReleaseBuild=true`, which only the installer script and the release workflow do.
 
 ```powershell
-.\installer\build-installer.ps1        # release installer, installer\dist\PingRunner-2.0.0-setup.exe
-.\installer\build-installer.ps1 -Dev   # the same, versioned 2.0.0-dev
+.\installer\build-installer.ps1        # release installer, installer\dist\PingRunner-2.2.0-setup.exe
+.\installer\build-installer.ps1 -Dev   # the same, versioned 2.2.0-dev
 ```
 
-Pushing a `v2.0.0` tag runs the release workflow, which checks the tag against `Version.props`, runs
+Pushing a `v2.2.0` tag runs the release workflow, which checks the tag against `Version.props`, runs
 the tests, builds the installer and its checksum, and drafts a GitHub Release. The steps before and
 after are in [docs/releasing.md](docs/releasing.md). The in-app update check only reads the newest
 published release and offers to open its page; it never downloads or runs anything.
